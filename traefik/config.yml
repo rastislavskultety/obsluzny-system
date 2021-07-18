@@ -1,0 +1,34 @@
+http:
+  routers:
+    www:
+      rule: "PathPrefix(`/`)"
+      service: www
+      priority: 1
+
+    api:
+      rule: "PathPrefix(`/api/`)"
+      middlewares:
+        - "removePrefixes"
+      service: api
+      priority: 2
+
+
+
+  services:
+    api:
+      loadBalancer:
+        servers:
+          - url: "http://server:8080/"
+
+    www:
+      loadBalancer:
+        servers:
+          - url: "http://static-files/"
+
+  middlewares:
+    removePrefixes:
+      stripPrefix:
+        prefixes:
+          - "/api"
+
+
