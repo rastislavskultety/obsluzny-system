@@ -1,0 +1,8 @@
+{
+  /* Prefix rest api požiadaviek na server */
+  "urlPrefix": "http://localhost:8080/api/",
+  /* Port pre socket komunikáciu s klientskou aplikáciou */
+  "port": 3000,
+  /* Zapnutie logovania prichádzajúcich spojení  */
+  "logging": false
+}

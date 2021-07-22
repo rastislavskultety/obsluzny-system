@@ -1,0 +1,15 @@
+{
+  /* Počiatočný konfigurácia obslužného systému */
+  "service": {
+    "numberOfQueues": 3, // parameter n, celé číslo > 0
+    "queueCapacity": 5, // parameter m, celé číslo > 0
+    "meanServiceTime": 1.0, // parameter t, v sekundách, > 0
+    "serviceTimeDeviation": 0.5 // parameter r, v sekundách, musí byť >= 0 a zároveň < meanServiceTime
+  },
+  "server": {
+    "logging": false, // logovanie http požiadaviek na konzolu
+    "security": {
+      "cookieSecret": "qe12}$NOq12Jkl" // pre vytváranie signed cookies
+    }
+  }
+}

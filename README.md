@@ -1,5 +1,5 @@
-# Log
+# Obslužný systém
 
+[Zadanie](doc/zadanie/Zadanie%20NodeJS.pdf)
 
-- pri odhlásení zmazať cookie
-- api pre vrátenie mena užívateľa
+[REST Api](doc/api/api.md)

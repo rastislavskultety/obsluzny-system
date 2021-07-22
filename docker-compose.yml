@@ -32,11 +32,32 @@ services:
     # build: .
     working_dir: /data
     volumes:
-      - ${PWD}:/data
+      - ${PWD}/server:/data
+    environment:
+      - CONFIG_FILE=config.docker.jsonc
     command: bash -c "npm install && npm run dev"
 
-  static-files:
-    image: nginx:1.20
+  simulator:
+    image: node:16
+    working_dir: /data
     volumes:
-      - ${PWD}/static:/usr/share/nginx/html
+      - ${PWD}/simulator:/data
+    environment:
+      - CONFIG_FILE=config.docker.jsonc
+    command: bash -c "npm install && npm run dev"
+
+  nuxt:
+    image: node:16
+    working_dir: /client
+    volumes:
+      - ${PWD}/client:/client
+    command: bash -c "npm install && npm run dev"
+
+  # redis:
+  #   image: redis
+
+  # static-files:
+  #   image: nginx:1.20
+  #   volumes:
+  #     - ${PWD}/client/dist:/usr/share/nginx/html
 

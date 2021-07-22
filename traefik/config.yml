@@ -7,28 +7,43 @@ http:
 
     api:
       rule: "PathPrefix(`/api/`)"
-      middlewares:
-        - "removePrefixes"
+      # middlewares:
+      #   - "removePrefixes"
       service: api
       priority: 2
 
-
+    sim:
+      rule: "PathPrefix(`/socket.io`)"
+      service: sim
+      priority: 3
 
   services:
+
+    # www:
+    #   loadBalancer:
+    #     servers:
+    #       - url: "http://static-files/"
+    www:
+      loadBalancer:
+        servers:
+          - url: "http://nuxt/"
+
     api:
       loadBalancer:
         servers:
           - url: "http://server:8080/"
 
-    www:
+
+    sim:
       loadBalancer:
         servers:
-          - url: "http://static-files/"
+          - url: "http://simulator:3000"
 
-  middlewares:
-    removePrefixes:
-      stripPrefix:
-        prefixes:
-          - "/api"
+
+  # middlewares:
+  #   removePrefixes:
+  #     stripPrefix:
+  #       prefixes:
+  #         - "/api"
 
 
