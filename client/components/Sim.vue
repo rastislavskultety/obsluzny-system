@@ -36,18 +36,15 @@ export default Vue.extend({
 
     /* Listen for events: */
     this.socket.on('status', (isRunning: boolean) => {
-      console.log('Received', 'status', isRunning);
       this.bus.$emit('sim-status', isRunning);
       this.running = isRunning;
     });
 
     this.socket.on('log', (message: string) => {
-      console.log('Received', 'log', message);
       this.bus.$emit('sim-log', message);
     });
 
     this.socket.on('error', (message: string) => {
-      console.log('Received', 'error', message);
       this.bus.$emit('sim-error', message);
     });
 

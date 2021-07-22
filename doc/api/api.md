@@ -1,5 +1,5 @@
 FORMAT: 1A
-HOST: https://polls.apiblueprint.org/
+HOST: http://localhost/api/
 
 # API pre obslužný systém
 
@@ -30,6 +30,15 @@ sú vrátene s patričným chybový http statusom a s html textom.
 | 503              | kapacita front požiadaviek bola prekročená |
 
 
+### Autentifikácia
+
+Po registrácii užívateľa je `sid` uložené do cookies. Autentifikácia potom overuje platnosť relácie
+cez cookie uložený v headeri http požiadavky.
+
+Pre účely simulácie je možné `sid` uviesť ako uri parameter alebo ako json objekt v tele http požiadavky.
+V tomto prípade sa ignoruje cookie v hlavičke.
+
+
 ## Správa užívateľov [/api/users]
 
 Užívatelia sa registrujú zadaním užívateľského mena. Po zaregistrovaní je vytvorená
@@ -38,15 +47,6 @@ relácia užívateľa identifikovaná parametrom `sid`, ktorý je vygenerovaný 
 
 Server nerieši duplicitu užívateľských mien, takže dvaja užívatelia môžu používať rovnaké
 užívateľské meno.
-
-
-### Autentifikácia
-
-Po registrácii je `sid` uložené do cookies. Autentifikácia potom overuje platnosť relácie
-cez cookie uložený v headeri http požiadavky.
-
-Pre účely simulácie je možné `sid` uviesť ako uri parameter alebo ako json objekt v tele http požiadavky.
-V tomto prípade sa ignoruje cookie v hlavičke.
 
 ### api
 

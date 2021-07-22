@@ -54,7 +54,6 @@ export default {
 
   // Axios module configuration: https://go.nuxtjs.dev/config-axios
   axios: {
-    // baseURL: 'https://private-63d40f-ringier.apiary-mock.com/api/'
     baseURL: 'http://localhost/api/'
   },
 

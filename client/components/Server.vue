@@ -139,6 +139,7 @@ export default Vue.extend({
         edit: false,
         show: false,
       },
+      interval: null as any,
     };
   },
 
@@ -149,14 +150,12 @@ export default Vue.extend({
   },
 
   activated() {
-    console.log('ACTIVATED');
     this.loadStats();
     this.loadConfig();
     this.interval = setInterval(() => this.loadStats(), 1000);
   },
 
   deactivated() {
-    console.log('DEACTIVATED');
     clearInterval(this.interval);
   },
 
@@ -166,7 +165,6 @@ export default Vue.extend({
 
   methods: {
     async loadStats() {
-      console.log('loadStats');
       const labels: { [index: string]: string } = {
         activeUsers: 'Aktuálmy počet užívateľov',
         numberOfQueues: 'Aktuálny počet front',
@@ -232,7 +230,6 @@ export default Vue.extend({
             this.config.current.serviceTimeDeviation
           )),
           await this.$axios.$post('config', this.config.current);
-        console.log('POSTED');
         (this.$refs.spinnerConfig as any).hide();
         this.config.edit = false;
       } catch (error) {
@@ -259,7 +256,7 @@ export default Vue.extend({
       });
     },
     showError(message: string) {
-      this.$bvToast.toast(message, {
+      (this as any).$bvToast.toast(message, {
         title: 'Chyba',
         variant: 'danger',
       });

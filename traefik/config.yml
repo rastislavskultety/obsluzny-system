@@ -22,7 +22,7 @@ http:
     # www:
     #   loadBalancer:
     #     servers:
-    #       - url: "http://static-files/"
+    #       - url: "http://web/"
     www:
       loadBalancer:
         servers:
