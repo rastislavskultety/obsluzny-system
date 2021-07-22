@@ -2,12 +2,6 @@
 
 Tento repozitár implementuje zadanie vzorového projektu obslužného systému bežiaceho v Node.js.
 
-**Odkazy**:
-
-- [Zadanie](doc/zadanie/Zadanie%20NodeJS.pdf)
-
-- [Dokumentácia REST API](https://obsluznysystem.docs.apiary.io/)
-
 **Obsah**:
 
 - [Obslužný systém](#obslužný-systém)
@@ -20,6 +14,11 @@ Tento repozitár implementuje zadanie vzorového projektu obslužného systému 
   - [Obmedzenia](#obmedzenia)
   - [Štruktúra projektu](#štruktúra-projektu)
   - [Konfigurácia](#konfigurácia)
+
+**Odkazy**:
+
+- [Zadanie](doc/zadanie/Zadanie%20NodeJS.pdf)
+- [Dokumentácia REST API](https://obsluznysystem.docs.apiary.io/)
 
 ## Rýchly štart
 
@@ -92,6 +91,8 @@ Celá aplikácia je vytvorená pomocou frameworkov [Nuxt.js](https://nuxtjs.org/
 Framework Nuxt.js je nastavený tak že vygeneruje aplikáciu vo formé statických html stránok. Tieto sú potom
 poskytované pomocou proxy servera [Nginx](https://www.nginx.com/) bežiacom v docker kontaineri `web`.
 
+![Web aplikácia](doc/images/web-application.png)
+
 ## Obmedzenia
 
 API server je spravený kvôli jednoduchosti ako jednoprocesová aplikácia a nie je pripravený na to aby bežaal distribuovane. Napriek tomu je zdrojový kód servera napísaný tak, že všetky relevantné funkcie sú spravené
@@ -131,7 +132,7 @@ samovysvetľujúce komentáre:
 
 ```jsonc
 {
-  /* Počiatočný konfigurácia obslužného systému */
+  /* Počiatočná konfigurácia obslužného systému */
   "service": {
     "numberOfQueues": 3, // parameter n, celé číslo > 0
     "queueCapacity": 5, // parameter m, celé číslo > 0

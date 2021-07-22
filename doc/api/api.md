@@ -249,7 +249,7 @@ Vynulovanie nastaví nulu pre tieto parametre: completedRequest, rejectedRequest
 | metóda | url        | popis                                           |
 | ------ | ---------- | ----------------------------------------------- |
 | GET    | /api/stats | Získanie monitorovacích údajov                  |
-| POST   | /api/stats | Vynulovanie kumulatívnych monitorovacích údajov |
+| DELETE | /api/stats | Vynulovanie kumulatívnych monitorovacích údajov |
 
 #### Získanie monitorovacích údajov [GET]
 

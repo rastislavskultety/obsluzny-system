@@ -1,5 +1,5 @@
 {
-  /* Počiatočný konfigurácia obslužného systému */
+  /* Počiatočná konfigurácia obslužného systému */
   "service": {
     "numberOfQueues": 3, // parameter n, celé číslo > 0
     "queueCapacity": 5, // parameter m, celé číslo > 0
