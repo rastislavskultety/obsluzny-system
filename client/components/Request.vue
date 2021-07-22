@@ -28,10 +28,6 @@
           <b-button @click="clear"> Vymazať výstup </b-button>
         </b-form-group>
       </b-form>
-
-      <b-alert variant="danger" :show="!!errorMessage" class="my-3">
-        {{ errorMessage }}
-      </b-alert>
     </div>
     <!-- <b-card-group rows> -->
 
@@ -117,11 +113,15 @@ interface Response {
 
 export default Vue.extend({
   components: { Spinner },
+
+  props: {
+    bus: Vue,
+  },
+
   data: () => ({
     responses: [] as Response[],
     lastId: 0,
     numberOfQuotes: 1,
-    errorMessage: '',
     pendingRequest: false,
   }),
 
@@ -129,7 +129,6 @@ export default Vue.extend({
     async onSubmit(event: Event) {
       event.preventDefault();
       try {
-        this.errorMessage = '';
         let startTime = Date.now();
 
         (this.$refs.spinner as any).show();
@@ -159,7 +158,7 @@ export default Vue.extend({
         if (msg.match(/status code 503/)) {
           msg = 'Servisné fronty sú plné, skúste neskôr.';
         }
-        this.errorMessage = msg;
+        this.bus.$emit('showError', msg);
         this.pendingRequest = false;
         (this.$refs.spinner as any).hide();
       }
@@ -167,7 +166,6 @@ export default Vue.extend({
 
     clear() {
       this.responses = [];
-      this.errorMessage = '';
     },
   },
 });

@@ -105,11 +105,9 @@ Projekt má túto štruktúru adresárov:
 ```
 + client - Webová aplikácia
   + components - stavebné komponenty aplikácie
-  + dist - vygenerované statické stránky aplikácie
   + pages - hlavná stránka
   + ...
 + server - API server
-  + dist - transpilovaný kód
   + src - zdrojový kód
     + api - REST api metódy
     + config - konfiguračné súbory servera
@@ -119,10 +117,11 @@ Projekt má túto štruktúru adresárov:
   + tests - unit testy
   + ...
 + simulator - Simulačný server
-  + dist - transpilovaný kód
   + src - zdrojový kód
+    + config - konfiguračné súbory servera
   + ...
 + traefik - Konfigurácia pre proxy
++ www - statické stránky webovej aplikácie (kópia z client/dist)
 ```
 
 ## Konfigurácia

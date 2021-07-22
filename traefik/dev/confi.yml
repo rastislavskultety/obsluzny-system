@@ -7,8 +7,6 @@ http:
 
     api:
       rule: "PathPrefix(`/api/`)"
-      # middlewares:
-      #   - "removePrefixes"
       service: api
       priority: 2
 
@@ -23,6 +21,7 @@ http:
     #   loadBalancer:
     #     servers:
     #       - url: "http://web/"
+
     www:
       loadBalancer:
         servers:
@@ -38,12 +37,5 @@ http:
       loadBalancer:
         servers:
           - url: "http://simulator:3000"
-
-
-  # middlewares:
-  #   removePrefixes:
-  #     stripPrefix:
-  #       prefixes:
-  #         - "/api"
 
 

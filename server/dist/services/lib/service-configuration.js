@@ -40,7 +40,7 @@ function configurationIsValid(config) {
         config.numberOfQueues > 0 &&
         Number.isInteger(config.queueCapacity) &&
         config.queueCapacity > 0 &&
-        config.meanServiceTime > 0 &&
+        config.meanServiceTime >= 0 &&
         config.serviceTimeDeviation >= 0;
 }
 exports.configurationIsValid = configurationIsValid;

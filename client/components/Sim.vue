@@ -1,8 +1,11 @@
 <template>
   <footer class="fixed-bottom bg-primary" v-if="running">
-    <b-container class="my-1">
+    <b-container class="my-2">
       <b-form inline>
         <label class="mr-3 text-white">Simulácia je spustená</label>
+        <b-button variant="outline-light" @click="show" class="mr-3"
+          >Zobraz</b-button
+        >
         <b-button variant="light" @click="stop">Stop</b-button>
       </b-form>
     </b-container>
@@ -58,6 +61,9 @@ export default Vue.extend({
   methods: {
     stop() {
       this.socket.emit('stop');
+    },
+    show() {
+      this.bus.$emit('navigate', 'Simulation');
     },
   },
 });

@@ -73,10 +73,6 @@
             </b-button>
           </b-form-group>
         </b-form-row>
-
-        <b-alert variant="danger" :show="!!errorMessage">
-          {{ errorMessage }}
-        </b-alert>
       </b-form>
     </b-container>
 
@@ -120,7 +116,6 @@ export default Vue.extend({
     numberOfLogLinesInput: 10,
     numberOfLogLinesValidated: 10,
     maxNumberOfLogLines: 1000,
-    errorMessage: '',
   }),
 
   computed: {
@@ -143,7 +138,7 @@ export default Vue.extend({
     });
 
     this.bus.$on('sim-error', (message: string) => {
-      this.errorMessage = message;
+      this.bus.$emit('showError', message);
     });
   },
 
@@ -154,12 +149,7 @@ export default Vue.extend({
       this.start();
     },
 
-    clearMessages() {
-      this.errorMessage = '';
-    },
-
     start() {
-      this.clearMessages();
       const params = {
         numberOfUsers: Number.parseInt(this.numberOfUsers as any),
         meanRequestTime: Number.parseFloat(this.meanRequestTime as any),

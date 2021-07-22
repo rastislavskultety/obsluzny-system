@@ -191,7 +191,7 @@ export default Vue.extend({
         this.stats.loaded = true;
       } catch (error) {
         (this.$refs.spinnerStats as any).hide();
-        this.showError(error.message);
+        this.bus.$emit('showError', error.message);
       }
     },
 
@@ -202,7 +202,7 @@ export default Vue.extend({
         (this.$refs.spinnerStats as any).hide();
       } catch (error) {
         (this.$refs.spinnerStats as any).hide();
-        this.showError(error.message);
+        this.bus.$emit('showError', error.message);
       }
     },
 
@@ -234,7 +234,7 @@ export default Vue.extend({
         this.config.edit = false;
       } catch (error) {
         (this.$refs.spinnerConfig as any).hide();
-        this.showError(error.message);
+        this.bus.$emit('showError', error.message);
       }
     },
     onEdit() {
@@ -253,12 +253,6 @@ export default Vue.extend({
       this.config.show = false;
       this.$nextTick(() => {
         this.config.show = true;
-      });
-    },
-    showError(message: string) {
-      (this as any).$bvToast.toast(message, {
-        title: 'Chyba',
-        variant: 'danger',
       });
     },
   },

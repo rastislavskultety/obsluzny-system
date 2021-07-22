@@ -2,7 +2,7 @@
   <div>
     <spinner ref="spinner"></spinner>
     <register v-if="!loading && !username" :bus="bus"></register>
-    <request v-if="username"></request>
+    <request v-if="username" :bus="bus"></request>
   </div>
 </template>
 

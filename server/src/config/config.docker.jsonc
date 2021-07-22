@@ -7,7 +7,7 @@
     "serviceTimeDeviation": 0.5 // parameter r, v sekundách, musí byť >= 0 a zároveň < meanServiceTime
   },
   "server": {
-    "logging": true, // logovanie http požiadaviek na konzolu
+    "logging": false, // logovanie http požiadaviek na konzolu
     "security": {
       "cookieSecret": "qe12}$NOq12Jkl" // pre vytváranie signed cookies
     }

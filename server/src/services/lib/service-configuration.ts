@@ -12,7 +12,7 @@ import configuration from '../../configuration';
 export interface ServiceConfiguration {
   numberOfQueues: number; // parameter n, celé číslo > 0
   queueCapacity: number; // parameter m, celé číslo > 0
-  meanServiceTime: number; // parameter t, v sekundách, > 0
+  meanServiceTime: number; // parameter t, v sekundách, >= 0
   serviceTimeDeviation: number; // parameter r, v sekundách, musí byť >= 0 a zároveň < meanServiceTime
 }
 
@@ -39,7 +39,7 @@ export function configurationIsValid(config: ServiceConfiguration): boolean {
     config.numberOfQueues > 0 &&
     Number.isInteger(config.queueCapacity) &&
     config.queueCapacity > 0 &&
-    config.meanServiceTime > 0 &&
+    config.meanServiceTime >= 0 &&
     config.serviceTimeDeviation >= 0;
 }
 

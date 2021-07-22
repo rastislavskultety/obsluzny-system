@@ -14,6 +14,9 @@
           >
             {{ item.label }}
           </b-nav-item>
+          <b-nav-item href="doc/Zadanie%20NodeJS.pdf" target="_blank">
+            Zadanie
+          </b-nav-item>
         </b-navbar-nav>
 
         <!-- Right aligned nav items -->
@@ -21,7 +24,7 @@
           <b-nav-item-dropdown v-if="username" right>
             <!-- Using 'button-content' slot -->
             <template #button-content>
-              <em>{{ username }}</em>
+              <em>Užívateľ: {{ username }}</em>
             </template>
             <b-dropdown-item @click="logout">Odhlásiť</b-dropdown-item>
           </b-nav-item-dropdown>

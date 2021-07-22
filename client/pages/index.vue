@@ -112,6 +112,29 @@ export default Vue.extend({
     this.bus.$on('navigate', (to: string) => {
       this.currentComponent = to;
     });
+
+    this.bus.$on('showError', (message: string) => this.showError(message));
+    this.bus.$on('showSuccess', (message: string) => this.showSuccess(message));
+  },
+
+  methods: {
+    showError(message: string) {
+      console.log('ERR');
+      (this as any).$bvToast.toast(message, {
+        title: 'Chyba',
+        variant: 'danger',
+        solid: true,
+      });
+    },
+
+    showSuccess(message: string) {
+      console.log('SUC');
+      (this as any).$bvToast.toast(message, {
+        title: 'Informácia',
+        variant: 'success',
+        solid: true,
+      });
+    },
   },
 });
 </script>

@@ -2,14 +2,13 @@ version: "3.3"
 
 services:
 
-
   proxy:
     image: traefik:2.4
     ports:
       - "80:80"
       - "8080:8080" # Web UI pre Traefik
     volumes:
-      - ${PWD}/traefik/prod:/etc/traefik/providers:delegated # Traefik dynamic config
+      - ${PWD}/traefik/dev:/etc/traefik/providers:delegated # Traefik dynamic config
     environment:
       - TRAEFIK_PROVIDERS_FILE_DIRECTORY=/etc/traefik/providers
       - TRAEFIK_GLOBAL_SENDANONYMOUSUSAGE=false
@@ -19,14 +18,13 @@ services:
 
   server:
     image: node:16
+    # build: .
     working_dir: /data
     volumes:
       - ${PWD}/server:/data
-      - /data/node_modules # npm moduly budú iba v kontainery, ale nie v lokálnom počítači
-      - /data/dist # distribučná verzia bude iba v kontaineri, ale nie v lokálnom počítači
     environment:
       - CONFIG_FILE=config.docker.jsonc
-    command: bash -c "npm install && npm run build && npm start"
+    command: bash -c "npm install && npm run dev"
 
   simulator:
     image: node:16
@@ -35,10 +33,12 @@ services:
       - ${PWD}/simulator:/data
     environment:
       - CONFIG_FILE=config.docker.jsonc
-    command: bash -c "npm install && npm run build && npm start"
+    command: bash -c "npm install && npm run dev"
 
-  web:
-    image: nginx:1.20
+  nuxt:
+    image: node:16
+    working_dir: /client
     volumes:
-      - ${PWD}/www:/usr/share/nginx/html
+      - ${PWD}/client:/client
+    command: bash -c "npm install && npm run dev"
 

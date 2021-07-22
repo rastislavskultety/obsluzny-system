@@ -33,7 +33,6 @@ export function handleInvalidSession(req: express.Request, res: express.Response
  * Návratová hodnota: true ak funkcia odoslala chybovú odozvu (parameter bola neplatný), ináč false
  */
 export function handleInvalidParameter(req: express.Request, res: express.Response, param: string, type: string): boolean {
-
   const value = req.body[param];
 
   // Test či je parameter prítomný

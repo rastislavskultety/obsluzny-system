@@ -1,11 +1,10 @@
 <template>
   <b-card>
-    <div class="jumbotron">
-      <h1 class="display-4">Registrácia užívateľa</h1>
-      <p class="lead">
-        Pre registráciu si zvolťe užívateľské meno a stlačte tlačidlo.
-      </p>
-
+    <b-jumbotron
+      header="Registrácia užívateľa"
+      lead="Zvolťe si ľubovoľné užívateľské meno."
+      bg-variant="white"
+    >
       <form @submit="submit">
         <b-form-group
           id="username-fieldset"
@@ -36,15 +35,8 @@
             <spinner ref="spinner"></spinner>
           </b-button>
         </div>
-
-        <b-alert variant="danger" :show="!!errorMessage">
-          {{ errorMessage }}
-        </b-alert>
-        <b-alert variant="success" :show="!!successMessage">
-          {{ successMessage }}
-        </b-alert>
       </form>
-    </div>
+    </b-jumbotron>
   </b-card>
 </template>
 
@@ -52,9 +44,6 @@
 import Vue from 'vue';
 
 import Spinner from './Spinner.vue';
-import { sleep } from './lib/sleep';
-
-const SUCCESS_DELAY = 1000;
 
 // Stav formulára:
 //   input -> request -> registered
@@ -76,8 +65,6 @@ export default Vue.extend({
 
   data: () => ({
     username: '',
-    errorMessage: '',
-    successMessage: '',
     formState: FormState.input,
   }),
 
@@ -95,15 +82,9 @@ export default Vue.extend({
 
   methods: {
     clear() {
-      this.clearMessages();
       (this.$refs.spinner as any).hide();
       this.username = '';
       this.formState = FormState.input;
-    },
-
-    clearMessages() {
-      this.errorMessage = '';
-      this.successMessage = '';
     },
 
     formIsDisabled(): boolean {
@@ -120,25 +101,25 @@ export default Vue.extend({
     },
 
     register() {
-      this.clearMessages();
-
+      let spinner = this.$refs.spinner as any;
       this.formState = FormState.request;
-      (this.$refs.spinner as any).show();
+      spinner.show();
 
       this.$axios
         .$post('users/register', { username: this.username })
         .then(async (result: Object) => {
           this.formState = FormState.registered;
-          (this.$refs.spinner as any).hide();
-          this.successMessage = 'Registrácia bola úspešná.';
-          await sleep(SUCCESS_DELAY);
           this.bus.$emit('user', this.username);
-          this.successMessage = '';
+          this.bus.$emit('showSuccess', 'Registrácia bola úspešná.');
+          spinner.hide();
         })
         .catch((err: Object) => {
           this.formState = FormState.input;
-          (this.$refs.spinner as any).hide();
-          this.errorMessage = 'Nie je možné registrovať, skúste prosím neskôr.';
+          this.bus.$emit(
+            'showError',
+            'Nie je možné registrovať, skúste prosím neskôr.'
+          );
+          spinner.hide();
         });
     },
   },
