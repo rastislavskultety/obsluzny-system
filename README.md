@@ -13,10 +13,10 @@ Tento repozitár implementuje zadanie vzorového projektu obslužného systému 
 - [Obslužný systém](#obslužný-systém)
   - [Rýchly štart](#rýchly-štart)
   - [Popis riešenia](#popis-riešenia)
-  - [Proxy server](#proxy-server)
-  - [API server](#api-server)
-  - [Simulačný server](#simulačný-server)
-  - [Webová aplikácia](#webová-aplikácia)
+    - [Proxy server](#proxy-server)
+    - [API server](#api-server)
+    - [Simulačný server](#simulačný-server)
+    - [Webová aplikácia](#webová-aplikácia)
   - [Obmedzenia](#obmedzenia)
   - [Štruktúra projektu](#štruktúra-projektu)
   - [Konfigurácia](#konfigurácia)
@@ -59,12 +59,12 @@ Obslužný systém pozostáva zo štyroch častí, pričom každá beží v odde
 
 ![Docker kontainery](doc/images/docker.png)
 
-## Proxy server
+### Proxy server
 
 Proxy server [Traefic](https://doc.traefik.io/traefik/) je použitý na smerovanie http komunikácie
 z klienskej aplikácie k trom ďalším kontainerom (api serveru, simulačnému serveru a k statickým stránkam).
 
-## API server
+### API server
 
 Je spustený v docker kontaineri `server`. Tento server implementuje logiku obslužného systému a vystavuje ju v REST API rozhraní.
 
@@ -76,14 +76,14 @@ Zdrojový kód využíva [Typescript](https://www.typescriptlang.org/).
 Server je možné konfigurovať pomocou konfiguračného súboru `config/config.docker.jsonc` ale tiež dynamicky
 za behu pomocou webovej aplikácie.
 
-## Simulačný server
+### Simulačný server
 
 Simuluje posielanie užívateľských požiadaviek na api server.
 
 Je implementovaný v [Node.js](https://nodejs.org/) v16. Simulačný server sa ovláda webovou aplikáciou s ktorou
 komunikuje cez websocket kanál.
 
-## Webová aplikácia
+### Webová aplikácia
 
 Webová aplikácia obsahuje rozhranie pre užívateľa, konfiguráciu serveru, monitorovanie serveru a simuláciu užívateľských požiadaviek. Má formu single page application.
 
@@ -91,7 +91,6 @@ Celá aplikácia je vytvorená pomocou frameworkov [Nuxt.js](https://nuxtjs.org/
 
 Framework Nuxt.js je nastavený tak že vygeneruje aplikáciu vo formé statických html stránok. Tieto sú potom
 poskytované pomocou proxy servera [Nginx](https://www.nginx.com/) bežiacom v docker kontaineri `web`.
-
 
 ## Obmedzenia
 
@@ -130,7 +129,7 @@ Projekt má túto štruktúru adresárov:
 Api server je možné konfigurovať v súbore `server/src/config/config.docker.jsonc`, ktorý obsahuje
 samovysvetľujúce komentáre:
 
-```json
+```jsonc
 {
   /* Počiatočný konfigurácia obslužného systému */
   "service": {
