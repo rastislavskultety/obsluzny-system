@@ -37,7 +37,7 @@ git clone https://github.com/rastislavskultety/obsluzny-system.git
 
 ```
 cd obsluzny-system
-docker-compose up -d
+docker-compose up
 ```
 
 3. Otvorenie stránky v prehliadači
