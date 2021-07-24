@@ -3,6 +3,7 @@
  */
 import * as shell from "shelljs";
 
+shell.mkdir("-p", "dist");
 shell.cp("-R", "src/config", "dist/config"); // Skopíruj konfiguračné súbory
 shell.cp("-R", "src/data", "dist/data"); // Skopíruj databázu
 

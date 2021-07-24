@@ -1,1 +1,0 @@
-(window.webpackJsonp=window.webpackJsonp||[]).push([[3],{348:function(e,n,t){"use strict";t.r(n);var r=t(7).default.extend({props:{userName:String},data:function(){return{}}}),l=t(63),component=Object(l.a)(r,(function(){var e=this,n=e.$createElement;return(e._self._c||n)("div",[e._v("Hello "+e._s(e.userName))])}),[],!1,null,null,null);n.default=component.exports}}]);
