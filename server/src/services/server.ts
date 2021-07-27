@@ -3,11 +3,14 @@
  */
 
 import { QueuePool } from "./lib/queue-pool";
-import { Queue, QueueStats } from "./lib/queue";
+import { Queue, QueueStats, RemoteQueue } from "./lib/queue";
 import { getConfiguration, ServiceConfiguration, setConfiguration } from "./lib/service-configuration";
 import { createSessionStore, SessionData } from "./session";
 import { ServiceCenter, ServiceQueue, ServiceRequest, ServiceResponse } from "./service";
 import { SessionStore } from "./lib/session-store";
+import path from 'path';
+import { Worker } from 'worker_threads';
+import { createWorkerTransport } from "./lib/worker-thread-transport";
 
 /*
  * Servisné stredisko simuluje spracovanie požiadavok užívateľov.
@@ -25,7 +28,15 @@ const serviceCenter = new ServiceCenter();
  * Každá fronta je identifikovaná parametrom id, čo je celé číslo.
  */
 function queueFactory(id: number): ServiceQueue {
-  return new Queue<ServiceRequest, ServiceResponse>(id, serviceCenter);
+  // const moduleURL = new URL(import.meta.url);
+  // const __dirname = path.dirname(moduleURL.pathname);
+  const filename = path.resolve(__dirname, './workers/queue.js');
+  const worker = new Worker(filename, { workerData: { id, serviceCenter } });
+  const transport = createWorkerTransport(worker);
+  worker.on('exit', () => console.log('worker', id, 'exited'));
+  return new RemoteQueue<ServiceRequest, ServiceResponse>(id, transport);
+  // return new Queue<ServiceRequest, ServiceResponse>(id, serviceCenter);
+
 }
 
 /*

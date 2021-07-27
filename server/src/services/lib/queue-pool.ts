@@ -96,9 +96,9 @@ export class QueuePool<T extends IQueue> {
       if (await queue.length() > 0) {
         break;
       }
-      // Zničenie frontu a odstránenie zo zoznamu
-      await queue.destroy();
+      // Odstránenie zo zoznamu a zničenie frontu
       this.queues.pop();
+      await queue.destroy();
     }
   }
 

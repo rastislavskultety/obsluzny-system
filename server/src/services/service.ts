@@ -5,7 +5,7 @@
  * Požiadavky špecifikujú počet citátov, ktoré požadujú v rámci jednej služby.
  */
 
-import { IServiceCenter, Queue } from "./lib/queue";
+import { IServiceCenter, RemoteQueue } from "./lib/queue";
 import { fetchRandomQuotes, Quote } from "./lib/quotes";
 import { getConfiguration } from "./lib/service-configuration";
 
@@ -27,7 +27,7 @@ export interface ServiceResponse {
 /*
  * Definícia špecifického typu radu pre simulované stredisko
  */
-export type ServiceQueue = Queue<ServiceRequest, ServiceResponse>;
+export type ServiceQueue = RemoteQueue<ServiceRequest, ServiceResponse>;
 
 /*
  * ServiceCenter je objekt ktorý vykonáva simuláciu spracovanie požiadaviek.

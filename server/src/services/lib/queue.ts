@@ -4,6 +4,7 @@
  * Fronta má priradené stredisko ktoré vybavuje požiadavky.
  */
 
+import { Transport } from "./hooked-transport";
 import { IQueue } from "./queue-pool";
 
 /*
@@ -42,7 +43,7 @@ export interface QueueStats {
  * Požiadavky sa vkladajú do fronty až do naplnenia kapacity. Požiadavka čaká vo fronte až kým nie
  * je spracovaná strediskom a potom sa uvoľní z fronty. Fronta pracuje ako FIFO rad.
  */
-export class Queue<Request, Response> implements IQueue {
+export class Queue<Request, Response>  {
   // Časová známka ktorá sa používa pre výpočet doby obsadenosti/neobsadenosti strediska
   private lastTimestamp: number = Date.now();
 
@@ -67,15 +68,6 @@ export class Queue<Request, Response> implements IQueue {
   // Konštruktor, id je identifikátor požiadavky
   constructor(public id: number, center: IServiceCenter<Request, Response>) {
     this.serviceCenter = center;
-  }
-
-  /*
-   * Zničenie fronty
-   *
-   * V odvodených triedach by tu mohlo byť vymazanie perzistných informácií (napr. z redis databázy)
-   */
-  async destroy() {
-    this.queue = [];
   }
 
   /*
@@ -158,7 +150,7 @@ export class Queue<Request, Response> implements IQueue {
    *
    * Poznámka: asynchronnosť je tu pre budúce rozšírenia triedy
    */
-  async length(): Promise<number> {
+  length(): number {
     return this.queue.length;
   }
 
@@ -167,7 +159,7 @@ export class Queue<Request, Response> implements IQueue {
    *
    * Poznámka: asynchronnosť je tu pre budúce rozšírenia triedy
    */
-  async getStats(): Promise<QueueStats> {
+  getStats(): QueueStats {
     // Korekcia doby obsadenia strediska vzhľadom na aktuálny čas, pretože
     // sa aktualizuje iba pri spracovaní požiadavky
     let serviceBusyTime = this.stats.serviceBusyTime;
@@ -194,7 +186,7 @@ export class Queue<Request, Response> implements IQueue {
    *
    * Poznámka: asynchronnosť je tu pre budúce rozšírenia triedy
    */
-  async resetStats(): Promise<void> {
+  resetStats() {
     this.stats.completedRequests =
       this.stats.rejectedRequests =
       this.stats.serviceBusyTime =
@@ -202,3 +194,53 @@ export class Queue<Request, Response> implements IQueue {
       this.stats.totalWaitTime = 0;
   }
 }
+export class RemoteQueue<Request, Response> implements IQueue {
+
+  constructor(public id: number, private transport: Transport) { }
+
+  /*
+   * Zničenie fronty
+   *
+   * V odvodených triedach by tu mohlo byť vymazanie perzistných informácií (napr. z redis databázy)
+   */
+  async destroy() {
+    await this.transport.send('destroy');
+  }
+
+  /*
+   * Pridanie požiadavky do fronty.
+   *
+   * Kapacita fronty sa môže  meniť zmenou dynamickou zmenou konfigurácie servera.
+   */
+  async enqueue(request: Request, capacity: number): Promise<Response> {
+    return (await this.transport.send('enqueue', request, capacity)) as Response;
+  }
+
+  /*
+   * Dĺžka fronty
+   *
+   * Poznámka: asynchronnosť je tu pre budúce rozšírenia triedy
+   */
+  async length(): Promise<number> {
+    return (await this.transport.send('length')) as number;
+  }
+
+  /*
+   * Získanie monitorovacích údajov fronty
+   *
+   * Poznámka: asynchronnosť je tu pre budúce rozšírenia triedy
+   */
+  async getStats(): Promise<QueueStats> {
+    return (await this.transport.send('getStats')) as QueueStats;
+  }
+
+  /*
+   * Vynulovanie monitorovacích údajov fronty
+   *
+   * Poznámka: asynchronnosť je tu pre budúce rozšírenia triedy
+   */
+  async resetStats(): Promise<void> {
+    await this.transport.send('resetStats');
+  }
+}
+

@@ -22,6 +22,8 @@ import Server from './services/server';
 // Konfigurácia aplikácie
 import configuration from "./configuration";
 
+
+console.log('DEBUG', process.env.DEBUG)
 // Vytvorenie http servera express
 const app = express();
 const port = configuration?.server?.port || 8080; // default port to listen
@@ -39,9 +41,7 @@ app.use(express.urlencoded({ extended: true })); // parsovanie parametrov z url 
 /*
  * Aplikačný middleware
  */
-if (configuration.server?.logging) {
-  app.use(log());// logovanie požiadaviek
-}
+app.use(log());// logovanie požiadaviek
 app.use(authenticate(server)); // autenifikácia -> req.session
 app.use(serviceConfiguration(server)); // aktuálne parametre služieb -> req.serviceConfiguration
 
