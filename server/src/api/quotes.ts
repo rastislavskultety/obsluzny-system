@@ -4,9 +4,8 @@
 
 import express from "express";
 import Server from "../services/server";
-import { handleInvalidParameter, handleInvalidSession } from "./lib/utils";
+import { handleInvalidSession } from "./lib/utils";
 import ExtendedRequest from '../middleware/extended-request';
-
 
 export default function (server: Server) {
   const router = express.Router({ mergeParams: true });
@@ -17,7 +16,9 @@ export default function (server: Server) {
       if (handleInvalidSession(req, res)) return;
 
       // Parameter count môže byť v url query alebo v tele http požiadavku
-      const count = Number.parseInt(req.query.count?.toString(), 10) || req.body.count || 1;
+
+      const count = typeof req.query.count !== "undefined" && Number.parseInt(req.query.count.toString(), 10) ||
+        req.body.count || 1;
 
       // Validácia parametra count
       if (!Number.isInteger(count)) {

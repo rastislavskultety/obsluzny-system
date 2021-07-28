@@ -20,7 +20,7 @@ export default function () {
     // tslint:disable-next-line:only-arrow-functions
     res.write = function (chunk) {
       body += chunk.toString('utf8');
-      return originalWrite.apply(res, arguments);
+      return originalWrite.apply(res, arguments as any);
     };
 
     // tslint:disable-next-line:only-arrow-functions
@@ -29,7 +29,7 @@ export default function () {
         body += chunk.toString('utf8');
       }
       debugLog('%d %s %s => %o', res.statusCode, req.method, req.originalUrl, body);
-      originalEnd.apply(res, arguments);
+      originalEnd.apply(res, arguments as any);
     };
   }
 

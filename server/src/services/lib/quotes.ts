@@ -24,6 +24,7 @@ debug('services')('Loading quotes database from %s', dataPath);
 const quotesData: Promise<Quote[]> = new Promise((resolve, reject) => {
   fs.readFile(dataPath, (err, data) => {
     if (err) {
+      // tslint:disable-next-line:no-console
       console.error('Cannot read data file ', dataPath, ': ', err);
       reject(err);
     }

@@ -1,8 +1,7 @@
 {
+  "extends": "@tsconfig/node16/tsconfig.json",
   "compilerOptions": {
-    "module": "commonjs",
-    "esModuleInterop": true,
-    "target": "es2020",
+    "experimentalDecorators": true,
     "noImplicitAny": true,
     "moduleResolution": "node",
     "sourceMap": true,

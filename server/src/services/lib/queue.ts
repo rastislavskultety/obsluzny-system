@@ -4,8 +4,9 @@
  * Fronta má priradené stredisko ktoré vybavuje požiadavky.
  */
 
-import { Transport } from "./hooked-transport";
+import { Transport } from "./transport/transport";
 import { IQueue } from "./queue-pool";
+import { rpc } from './rpc';
 
 /*
  * Položka vo fronte ktorá obsahuje požiadavku.
@@ -70,12 +71,17 @@ export class Queue<Request, Response>  {
     this.serviceCenter = center;
   }
 
+
+  @rpc
+  getId() {
+    return this.id;
+  }
   /*
    * Pridanie požiadavky do fronty.
    *
    * Kapacita fronty sa môže  meniť zmenou dynamickou zmenou konfigurácie servera.
    */
-  enqueue(request: Request, capacity: number): Promise<Response> {
+  @rpc enqueue(request: Request, capacity: number): Promise<Response> {
     // Ak je fronta plná, vytvor výnimku
     if (this.queue.length >= capacity) {
       this.stats.rejectedRequests += 1;
@@ -150,7 +156,7 @@ export class Queue<Request, Response>  {
    *
    * Poznámka: asynchronnosť je tu pre budúce rozšírenia triedy
    */
-  length(): number {
+  @rpc length(): number {
     return this.queue.length;
   }
 
@@ -159,7 +165,7 @@ export class Queue<Request, Response>  {
    *
    * Poznámka: asynchronnosť je tu pre budúce rozšírenia triedy
    */
-  getStats(): QueueStats {
+  @rpc getStats(): QueueStats {
     // Korekcia doby obsadenia strediska vzhľadom na aktuálny čas, pretože
     // sa aktualizuje iba pri spracovaní požiadavky
     let serviceBusyTime = this.stats.serviceBusyTime;
@@ -186,7 +192,7 @@ export class Queue<Request, Response>  {
    *
    * Poznámka: asynchronnosť je tu pre budúce rozšírenia triedy
    */
-  resetStats() {
+  @rpc resetStats() {
     this.stats.completedRequests =
       this.stats.rejectedRequests =
       this.stats.serviceBusyTime =
@@ -194,53 +200,3 @@ export class Queue<Request, Response>  {
       this.stats.totalWaitTime = 0;
   }
 }
-export class RemoteQueue<Request, Response> implements IQueue {
-
-  constructor(public id: number, private transport: Transport) { }
-
-  /*
-   * Zničenie fronty
-   *
-   * V odvodených triedach by tu mohlo byť vymazanie perzistných informácií (napr. z redis databázy)
-   */
-  async destroy() {
-    await this.transport.send('destroy');
-  }
-
-  /*
-   * Pridanie požiadavky do fronty.
-   *
-   * Kapacita fronty sa môže  meniť zmenou dynamickou zmenou konfigurácie servera.
-   */
-  async enqueue(request: Request, capacity: number): Promise<Response> {
-    return (await this.transport.send('enqueue', request, capacity)) as Response;
-  }
-
-  /*
-   * Dĺžka fronty
-   *
-   * Poznámka: asynchronnosť je tu pre budúce rozšírenia triedy
-   */
-  async length(): Promise<number> {
-    return (await this.transport.send('length')) as number;
-  }
-
-  /*
-   * Získanie monitorovacích údajov fronty
-   *
-   * Poznámka: asynchronnosť je tu pre budúce rozšírenia triedy
-   */
-  async getStats(): Promise<QueueStats> {
-    return (await this.transport.send('getStats')) as QueueStats;
-  }
-
-  /*
-   * Vynulovanie monitorovacích údajov fronty
-   *
-   * Poznámka: asynchronnosť je tu pre budúce rozšírenia triedy
-   */
-  async resetStats(): Promise<void> {
-    await this.transport.send('resetStats');
-  }
-}
-

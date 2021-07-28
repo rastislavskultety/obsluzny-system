@@ -22,8 +22,6 @@ import Server from './services/server';
 // Konfigurácia aplikácie
 import configuration from "./configuration";
 
-
-console.log('DEBUG', process.env.DEBUG)
 // Vytvorenie http servera express
 const app = express();
 const port = configuration?.server?.port || 8080; // default port to listen

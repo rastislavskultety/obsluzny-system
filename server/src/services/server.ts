@@ -3,14 +3,16 @@
  */
 
 import { QueuePool } from "./lib/queue-pool";
-import { Queue, QueueStats, RemoteQueue } from "./lib/queue";
+import { QueueStats } from "./lib/queue";
 import { getConfiguration, ServiceConfiguration, setConfiguration } from "./lib/service-configuration";
 import { createSessionStore, SessionData } from "./session";
-import { ServiceCenter, ServiceQueue, ServiceRequest, ServiceResponse } from "./service";
+import { ServiceQueue } from "./service";
 import { SessionStore } from "./lib/session-store";
-import path from 'path';
 import { Worker } from 'worker_threads';
-import { createWorkerTransport } from "./lib/worker-thread-transport";
+import { createWorkerTransport } from "./lib/transport/worker-thread-transport";
+import { RemoteQueue } from "./lib/remote-queue";
+import { RPCClient } from "./lib/rpc";
+import path from 'path';
 
 /*
  * Servisné stredisko simuluje spracovanie požiadavok užívateľov.
@@ -20,7 +22,7 @@ import { createWorkerTransport } from "./lib/worker-thread-transport";
  *
  * Všetky servisné centrá sú simulované jedným objektom.
  */
-const serviceCenter = new ServiceCenter();
+// const serviceCenter = new ServiceCenter();
 
 /*
  * Factory pre vytvárnie frontov požiadaviek pre jednotlivé strediská
@@ -28,15 +30,10 @@ const serviceCenter = new ServiceCenter();
  * Každá fronta je identifikovaná parametrom id, čo je celé číslo.
  */
 function queueFactory(id: number): ServiceQueue {
-  // const moduleURL = new URL(import.meta.url);
-  // const __dirname = path.dirname(moduleURL.pathname);
-  const filename = path.resolve(__dirname, './workers/queue.js');
-  const worker = new Worker(filename, { workerData: { id, serviceCenter } });
-  const transport = createWorkerTransport(worker);
-  worker.on('exit', () => console.log('worker', id, 'exited'));
-  return new RemoteQueue<ServiceRequest, ServiceResponse>(id, transport);
-  // return new Queue<ServiceRequest, ServiceResponse>(id, serviceCenter);
 
+  const worker = new Worker(path.resolve(__dirname, './workers/queue.js'), { workerData: { id } });
+  const rpcClient = new RPCClient(createWorkerTransport(worker));
+  return new RemoteQueue(id, rpcClient);
 }
 
 /*

@@ -1,4 +1,4 @@
-import { Transport } from './hooked-transport';
+import { Transport } from './transport';
 import { Worker, MessagePort } from 'worker_threads';
 
 export function createMessagePortTransport(messagePort: MessagePort): Transport {
