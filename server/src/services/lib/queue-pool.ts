@@ -16,7 +16,7 @@ export interface IQueue {
 /*
  * Definícia factory pre vytváranie nových front. Každá fronta je identifikovaná celým číslom.
  */
-export type QueueFactory<T extends IQueue> = (id: number) => T;
+export type QueueFactory<T extends IQueue> = (id: number) => Promise<T>;
 
 
 /*
@@ -40,7 +40,7 @@ export class QueuePool<T extends IQueue> {
     // Ak môžeme vytvoriť ďalšiu frontu tak ju vytvoríme
     if (this.queues.length < maxNumberOfQueues) {
       const id = this.queues.length;
-      const queue = this.queueFactory(id);
+      const queue = await this.queueFactory(id);
       this.queues.push(queue);
       return queue;
     }

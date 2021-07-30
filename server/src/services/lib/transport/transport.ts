@@ -1,20 +1,15 @@
 import { EventEmitter } from 'events';
+import debug from 'debug';
 
-export interface IReceivePort {
-  onMessage(callback: (...args: any) => void): void;
-  onClose(callback: () => void): void;
-  close(): void;
-}
+const log = debug('transport');
 
-export interface ISendPort {
-  send(...args: any): void;
-  onClose(callback: () => void): void;
-  close(): void;
-}
+export type IReplyCallback = (value: any) => void;
 
 export interface ITransportChannel {
-  receivePort: IReceivePort,
-  sendPort: ISendPort
+  on(eventName: 'close', callback: () => void): void;
+  on(eventName: 'message', callback: (reply: IReplyCallback, ...args: any) => void): void;
+  send(...args: any): void;
+  close(): void;
 }
 
 interface PendingResponse {
@@ -35,23 +30,24 @@ interface ErrorEnvelope extends MessageEnvelope {
   error: any;
 }
 
-export class Transport {
-
-  private emitter = new EventEmitter();
+export class Transport extends EventEmitter {
 
   private sequentialId = 0;
   private pending = new Map<number, PendingResponse>();
 
-  constructor(private receivePort: IReceivePort, private sendPort: ISendPort) {
+  constructor(private channel: ITransportChannel) {
+    super();
     this.initialize();
   }
 
   private initialize() {
-    this.receivePort.onMessage((env: MessageEnvelope | ReplyEnvelope | ErrorEnvelope, ...args: any) => {
+    this.channel.on('message', (reply, env: MessageEnvelope | ReplyEnvelope | ErrorEnvelope, ...args: any) => {
+      log('received message from channel: env=%o, args=%o', env, [...args]);
+
       const { id, type } = env;
       switch (type) {
         case 'message':
-          this.emitter.emit('message', id, ...args);
+          this.emit('message', reply, id, ...args);
           break;
         case 'response':
           {
@@ -76,43 +72,53 @@ export class Transport {
           }
           break;
         default:
+          throw new Error('Invalid envelope type');
         //
       } // switch
     }); // onMessage
 
-    this.receivePort.onClose(() => {
-      this.close();
-    });
-
-    this.sendPort.onClose(() => {
-      this.close();
+    this.channel.on('close', () => {
+      this.emit('close');
     });
   }
 
   public send(...args: any): Promise<any> {
+    log('sending message to channel: args=%o', [...args]);
     const id = this.sequentialId++;
     return new Promise<any>((resolve, reject) => {
       this.pending.set(id, { resolve, reject });
-      this.sendPort.send({ type: 'message', id }, ...args);
+      this.channel.send({ type: 'message', id }, ...args);
     });
   }
 
-  onMessage(callback: (...args: any) => Promise<any>): void {
-    this.emitter.on('message', (id: string, ...args: any) => {
-      callback(...args)
-        .then(response => this.sendPort.send({ type: 'response', id, response }))
-        .catch(error => this.sendPort.send({ type: 'error', id, error }));
-    });
-  }
+  on(eventName: 'close', callback: () => void): this;
+  on(eventName: 'message', callback: (reply: (err: any, response?: any) => void, ...args: any) => void): this;
+  on(eventName: string, callback: (...args: any) => void): this {
+    switch (eventName) {
+      case 'message':
+        return super.on('message', (reply: (IReplyCallback), id: string, ...args: any) => {
+          callback(
+            (error: any, response?: any) => {
+              if (error) {
+                reply({ type: 'error', id, error })
+              } else {
+                reply({ type: 'response', id, response })
+              }
+            },
+            ...args);
+        });
 
-  onClose(callback: () => void) {
-    this.emitter.once('close', callback)
+      case 'close':
+        return super.on('close', callback);
+
+      default:
+        throw new Error('Invalid event name ' + eventName);
+    }
   }
 
   close() {
-    this.receivePort.close();
-    this.sendPort.close();
-    this.emitter.emit('close');
+    this.channel.close();
+    this.emit('close');
   }
 }
 

@@ -1,5 +1,12 @@
 /*
  * HTTP server založený na Express.js
+ *
+ * Nastavenie DEBUG environmentálnej premennej:
+ *   http         - logovanie http požiadaviek
+ *   services     - logovanie business logiky
+ *   transport    - logovanie tranportnej vrstvy
+ *   channel      - logovanie kanálu = socket
+ *   rpc          - logovanie rpc volaní
  */
 
 import express from "express";

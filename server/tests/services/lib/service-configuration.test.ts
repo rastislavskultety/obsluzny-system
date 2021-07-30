@@ -47,13 +47,6 @@ describe('service-configuration.ts', () => { // the tests container
     expect(Cfg.configurationIsValid({
       numberOfQueues: 1,
       queueCapacity: 1,
-      meanServiceTime: 0, // chyba
-      serviceTimeDeviation: 0.5
-    })).to.equal(false);
-
-    expect(Cfg.configurationIsValid({
-      numberOfQueues: 1,
-      queueCapacity: 1,
       meanServiceTime: 2.5,
       serviceTimeDeviation: -2.5 // chyba
     })).to.equal(false);

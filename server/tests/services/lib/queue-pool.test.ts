@@ -30,7 +30,7 @@ class QueueStub implements IQueue {
   }
 }
 
-function queueFactory(id: number) {
+async function queueFactory(id: number) {
   return new QueueStub(id);
 }
 

@@ -3,11 +3,11 @@
 	"tasks": [
 		{
 			"type": "npm",
-			"script": "build-dev",
+			"script": "build",
 			"path": "server/",
 			"group": "build",
 			"problemMatcher": [],
-			"label": "server: npm run build-dev",
+			"label": "server: npm run build",
 			"detail": "npm-run-all tsc"
 		}
 	]

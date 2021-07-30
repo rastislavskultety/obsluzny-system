@@ -15,7 +15,8 @@
     "dev:start": "npm-run-all build-dev start",
     "dev": "nodemon --watch src -e ts,json,jsonc --exec npm run dev:start",
     "dev:debug": "npm-run-all build-dev start-debug",
-    "test": "env TS_NODE_COMPILER_OPTIONS='{\"module\": \"commonjs\" }' mocha -r ts-node/register 'tests/**/*.ts'"
+    "test": "env TS_NODE_COMPILER_OPTIONS='{\"module\": \"commonjs\" }' mocha -r ts-node/register 'tests/**/*.ts'",
+    "test-debug": "env TS_NODE_COMPILER_OPTIONS='{\"module\": \"commonjs\" }' DEBUG=transport,channel mocha -r ts-node/register 'tests/**/*.ts'"
   },
   "keywords": [],
   "author": "Rastislav Škultéty <rskultety@gmail.com>",
@@ -35,6 +36,7 @@
     "@types/express": "^4.17.13",
     "@types/chai": "^4.2.21",
     "@types/mocha": "^8.2.3",
+    "@types/node": "^16.4.7",
     "@types/node-ipc": "^9.1.5",
     "@types/shelljs": "^0.8.9",
     "@types/uuid": "^8.3.1",

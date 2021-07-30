@@ -9,10 +9,11 @@ import { createSessionStore, SessionData } from "./session";
 import { ServiceQueue } from "./service";
 import { SessionStore } from "./lib/session-store";
 import { Worker } from 'worker_threads';
-import { createWorkerTransport } from "./lib/transport/worker-thread-transport";
 import { RemoteQueue } from "./lib/remote-queue";
 import { RPCClient } from "./lib/rpc";
 import path from 'path';
+import { createSocketTransport } from "./lib/transport/socket-transport";
+import { SocketClient } from "./lib/socket";
 
 /*
  * Servisné stredisko simuluje spracovanie požiadavok užívateľov.
@@ -29,10 +30,14 @@ import path from 'path';
  *
  * Každá fronta je identifikovaná parametrom id, čo je celé číslo.
  */
-function queueFactory(id: number): ServiceQueue {
+async function queueFactory(id: number): Promise<ServiceQueue> {
+  const socketPath = `/tmp/unix.socket.queue.${id}`;
+  const worker = new Worker(path.resolve(__dirname, './workers/queue.js'), { workerData: { id, socketPath } });
+  await new Promise<void>(resolve => setTimeout(resolve, 500));
 
-  const worker = new Worker(path.resolve(__dirname, './workers/queue.js'), { workerData: { id } });
-  const rpcClient = new RPCClient(createWorkerTransport(worker));
+  const client = new SocketClient(socketPath);
+  await new Promise<void>(resolve => client.on('ready', resolve));
+  const rpcClient = new RPCClient(createSocketTransport(client));
   return new RemoteQueue(id, rpcClient);
 }
 

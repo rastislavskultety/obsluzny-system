@@ -6,24 +6,30 @@
   "configurations": [
     {
       "cwd": "${workspaceFolder}/server",
-      "command": "npm run start-debug",
-      "name": "Run server",
+      "command": "npm run start",
+      "env": {
+        "DEBUG": "transport,rpc"
+      },
+      "name": "Server: start",
       "request": "launch",
       "type": "node-terminal",
-      "preLaunchTask": "server: npm run build-dev"
+      "preLaunchTask": "server: npm run build"
     },
     {
       "type": "node",
       "request": "launch",
-      "name": "Mocha All",
-      "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
+      "name": "Server: Mocha All",
+      "cwd": "${workspaceFolder}/server",
+      "program": "${workspaceFolder}/server/node_modules/mocha/bin/_mocha",
+      "env": {
+        "TS_NODE_COMPILER_OPTIONS": "{\"module\": \"commonjs\" }",
+        "DEBUG": "transport,channel",
+      },
       "args": [
         "-r",
         "ts-node/register",
-        "--timeout",
-        "999999",
         "--colors",
-        "${workspaceFolder}/tests/**/*.test.ts",
+        "${workspaceFolder}/server/tests/**/*.test.ts",
       ],
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",

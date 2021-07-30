@@ -1,15 +1,27 @@
 import { Transport } from '../transport/transport';
+import debug from 'debug';
+
+const log = debug('rpc');
 
 export class RPCServer {
   private methods: { [index: string]: (...args: any) => Promise<any> } = {};
 
   constructor(transport: Transport) {
-    transport.onMessage((method: string, ...args: any): Promise<any> => {
+    transport.on('message', async (reply, method: string, ...args: any) => {
+      log('rpc server received call to %s with args: %o', method, [...args]);
+
       const fn = this.methods[method];
       if (fn)
-        return fn(...args);
+        try {
+          const result = await fn(...args);
+          log('rpc server sending reply to call %s: %o', method, result);
+          reply(null, result);
+        } catch (error) {
+          log('rpc server sending error to call %s: %o', method, error);
+          reply(error);
+        }
       else
-        throw new Error('Invalid method ' + method);
+        reply(new Error('Invalid method ' + method));
     });
   }
 

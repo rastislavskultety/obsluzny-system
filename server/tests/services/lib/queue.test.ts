@@ -11,8 +11,8 @@ interface TestResponse {
 
 class CenterStub implements IServiceCenter<TestRequest, TestResponse> {
   private paused = false;
-  private pending: TestResponse;
-  private resume: (response: TestResponse) => void;
+  private pending: TestResponse | null = null;
+  private resume: null | { (response: TestResponse): void } = null;
   public numberOfRequests = 0;
 
   async serve(request: TestRequest): Promise<TestResponse> {
@@ -34,7 +34,11 @@ class CenterStub implements IServiceCenter<TestRequest, TestResponse> {
       this.numberOfRequests += 1;
       let pending = this.pending;
       this.pending = null;
-      this.resume(pending);
+      if (this.resume) {
+        this.resume(pending);
+      } else {
+        throw Error('CenterStub: cannot resume')
+      }
     }
   }
 
