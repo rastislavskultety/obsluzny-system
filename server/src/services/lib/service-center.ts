@@ -5,11 +5,14 @@
  * Požiadavky špecifikujú počet citátov, ktoré požadujú v rámci jednej služby.
  */
 
-import { IServiceCenter } from "./lib/queue";
-import { fetchRandomQuotes, Quote } from "./lib/quotes";
-import { RemoteQueue } from "./lib/remote-queue";
-import { getConfiguration } from "./lib/service-configuration";
+import { IServiceCenter } from "./queue";
+import { fetchRandomQuotes, Quote } from "./quotes";
+import { RemoteQueue } from "./remote-queue";
+import { rpc } from "./rpc";
+import debug from 'debug';
+import { ServiceConfigurationStore } from "./service-configuration";
 
+const debugService = debug('service')
 
 /*
  * Požiadavka užívateľa - počet požadovaných citátov
@@ -36,14 +39,19 @@ export type ServiceQueue = RemoteQueue<ServiceRequest, ServiceResponse>;
  * požiadaviek
  */
 export class ServiceCenter implements IServiceCenter<ServiceRequest, ServiceResponse> {
+
+  constructor(private configStore: ServiceConfigurationStore) { }
+
+  @rpc
   async serve(request: ServiceRequest): Promise<ServiceResponse> {
+    debugService('serving request %o', request);
     // Pomocná asynchrónna funkcia pre čakanie
     const sleep = (time: number): Promise<void> => {
       return new Promise((resolve) => setTimeout(resolve, time * 1000));
     }
 
     // Získanie aktuálnej konfigurácie služieb
-    const conf = await getConfiguration();
+    const conf = await this.configStore.get();
 
     // Výpočet náhodnej doby čakania
     // - meanServiceTime je parameter "t" zo zadania
@@ -57,3 +65,4 @@ export class ServiceCenter implements IServiceCenter<ServiceRequest, ServiceResp
     return response;
   }
 }
+

@@ -13,7 +13,8 @@ export default function (server: Server) {
   router.get('/', async (req, res, next) => {
     try {
       const countLimit = 1000;
-      if (handleInvalidSession(req, res)) return;
+      console.log('DISABLED SECURITY');
+      // if (handleInvalidSession(req, res)) return;
 
       // Parameter count môže byť v url query alebo v tele http požiadavku
 
@@ -28,12 +29,11 @@ export default function (server: Server) {
         return res.status(400).send({ error: "Parameter count must be less than " + countLimit })
       }
 
-      const conf = (req as ExtendedRequest).serviceConfiguration; // Aktuálna konfigurácia služieb
-
+      const conf = await server.serviceConfigurationStore.get(); // Aktuálna konfigurácia služieb
 
       try {
 
-        const pool = server.queuePool();
+        const pool = server.queuePool;
 
         // Získaj frontu pre uloženie požiadavky
         const queue = await pool.allocateQueue(conf.numberOfQueues);

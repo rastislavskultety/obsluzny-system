@@ -2,41 +2,47 @@ import { IReplyCallback, ITransportChannel, Transport } from './transport';
 import { Worker, MessagePort } from 'worker_threads';
 import debug from 'debug';
 
-const log = debug('channel');
+const debugChannel = debug('channel');
 
 class MessagePortChannel implements ITransportChannel {
   constructor(private messagePort: MessagePort) { }
 
-  on(eventName: 'close', callback: () => void): void;
-  on(eventName: 'message', callback: (reply: IReplyCallback, ...args: any) => void): void;
-  on(eventName: string, callback: (...args: any) => void): void {
-    log('on %s', eventName);
+  on(eventName: 'close' | 'ready', callback: () => void): this;
+  on(eventName: 'message', callback: (reply: IReplyCallback, ...args: any[]) => void): this;
+  on(eventName: string, callback: (...args: any[]) => void): this {
+    debugChannel('on %s', eventName);
     switch (eventName) {
       case 'message':
-        const reply = (...args: any) => this.send(...args);
+        const reply = (...args: any[]) => this.send(...args);
         this.messagePort.on('message', (value: any[]) => {
-          log('received message from messagePort value=%o', value);
+          debugChannel('received message from messagePort value=%o', value);
           callback(reply, ...value);
         });
         break;
 
       case 'close':
+      case 'ready':
         this.messagePort.on('close', callback);
         break;
 
       default:
         throw new Error('Invalid event name ' + eventName);
     }
+    return this;
   }
 
-  send(...args: any): void {
-    log('sending message to messagePort args=%o', [...args]);
-    setImmediate(() => this.messagePort.postMessage([...args]));
+  send(...args: any[]): void {
+    debugChannel('sending message to messagePort args=%o', [...args]);
+    this.messagePort.postMessage([...args]);
   }
 
   close(): void {
-    log('closing messagePort');
-    setImmediate(() => this.messagePort.close());
+    debugChannel('closing messagePort');
+    this.messagePort.close();
+  }
+
+  isReady(): boolean {
+    return true;
   }
 }
 
@@ -44,35 +50,41 @@ class MessagePortChannel implements ITransportChannel {
 class WorkerChannel implements ITransportChannel {
   constructor(private worker: Worker) { }
 
-  on(eventName: 'close', callback: () => void): void;
-  on(eventName: 'message', callback: (reply: IReplyCallback, ...args: any) => void): void;
-  on(eventName: string, callback: (...args: any) => void): void {
+  on(eventName: 'close' | 'ready', callback: () => void): this;
+  on(eventName: 'message', callback: (reply: IReplyCallback, ...args: any[]) => void): this;
+  on(eventName: string, callback: (...args: any[]) => void): this {
     switch (eventName) {
       case 'message':
-        const reply = (...args: any) => this.send(...args);
+        const reply = (...args: any[]) => this.send(...args);
         this.worker.on('message', (value: any[]) => {
-          log('received message from worker value=%o', value);
+          debugChannel('received message from worker value=%o', value);
           callback(reply, ...value);
         });
         break;
 
       case 'close':
+      case 'ready':
         this.worker.on('exit', callback);
         break;
 
       default:
         throw new Error('Invalid event name ' + eventName);
     }
+    return this;
   }
 
-  send(...args: any): void {
-    log('sending message to worker args=%o', [...args]);
+  send(...args: any[]): void {
+    debugChannel('sending message to worker args=%o', [...args]);
     this.worker.postMessage([...args]);
   }
 
   close(): void {
-    log('terminating worker')
-    setImmediate(() => this.worker.terminate());
+    debugChannel('terminating worker')
+    this.worker.terminate();
+  }
+
+  isReady(): boolean {
+    return true;
   }
 }
 

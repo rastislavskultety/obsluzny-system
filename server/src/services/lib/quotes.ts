@@ -6,6 +6,8 @@ import fs from 'fs';
 import path from 'path';
 import debug from 'debug';
 
+const debugService = debug('service');
+
 /*
  * Informácie o citáte
  */
@@ -18,7 +20,7 @@ export interface Quote {
 // Cesta k json súboru obsahujúcemu citáty
 const dataPath = path.resolve(__dirname, '../../data/quotes.json');
 
-debug('services')('Loading quotes database from %s', dataPath);
+debugService('Loading quotes database from %s', dataPath);
 
 // Asynchrónne načítanie citátov
 const quotesData: Promise<Quote[]> = new Promise((resolve, reject) => {

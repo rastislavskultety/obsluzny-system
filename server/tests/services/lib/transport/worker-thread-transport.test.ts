@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import { Worker, MessageChannel, MessagePort, isMainThread, workerData, parentPort } from 'worker_threads';
-import { workerTypescript } from './lib/ts-worker';
+import { workerTypescript } from '../../../test-lib/ts-worker';
 import { createMessagePortTransport, createWorkerTransport } from '../../../../src/services/lib/transport';
 import { setTimeout as wait, setImmediate as nextTick } from 'timers/promises'
 

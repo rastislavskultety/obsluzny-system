@@ -6,13 +6,14 @@
   "configurations": [
     {
       "cwd": "${workspaceFolder}/server",
-      "command": "npm run start",
+      "command": "node dist/index.js",
       "env": {
-        "DEBUG": "transport,rpc"
+        "DEBUG": "redis"
       },
       "name": "Server: start",
       "request": "launch",
       "type": "node-terminal",
+      "redirectOutput": true,
       "preLaunchTask": "server: npm run build"
     },
     {
@@ -23,7 +24,7 @@
       "program": "${workspaceFolder}/server/node_modules/mocha/bin/_mocha",
       "env": {
         "TS_NODE_COMPILER_OPTIONS": "{\"module\": \"commonjs\" }",
-        "DEBUG": "transport,channel",
+        "DEBUG": "",
       },
       "args": [
         "-r",

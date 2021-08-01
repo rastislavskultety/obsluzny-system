@@ -26,3 +26,5 @@ services:
   web:
     build: client
 
+  redis:
+    from: redis

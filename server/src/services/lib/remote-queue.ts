@@ -13,6 +13,7 @@ export class RemoteQueue<Request, Response> implements IQueue {
   //  * V odvodených triedach by tu mohlo byť vymazanie perzistných informácií (napr. z redis databázy)
   //  */
   async destroy() {
+    console.log('destroy remote queue')
     this.rpc.close();
   }
 

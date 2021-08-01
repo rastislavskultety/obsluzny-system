@@ -7,6 +7,8 @@
  *   transport    - logovanie tranportnej vrstvy
  *   channel      - logovanie kanálu = socket
  *   rpc          - logovanie rpc volaní
+ *   center       - logovanie service center
+ *   worker       - logovanie worker threads
  */
 
 import express from "express";
@@ -15,7 +17,6 @@ import cookieParser from 'cookie-parser';
 // Middleware
 import log from "./middleware/log";
 import authenticate from "./middleware/authenticate";
-import serviceConfiguration from "./middleware/service-configuration";
 
 // API routes
 import users from './api/users';
@@ -48,7 +49,6 @@ app.use(express.urlencoded({ extended: true })); // parsovanie parametrov z url 
  */
 app.use(log());// logovanie požiadaviek
 app.use(authenticate(server)); // autenifikácia -> req.session
-app.use(serviceConfiguration(server)); // aktuálne parametre služieb -> req.serviceConfiguration
 
 // API routes
 app.use("/api/users", users(server));

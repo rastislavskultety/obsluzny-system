@@ -24,7 +24,7 @@ services:
       - ${PWD}/server:/data
     environment:
       - CONFIG_FILE=config.docker.jsonc
-      - DEBUG=services
+      - DEBUG=worker,pool
     command: bash -c "npm install && npm run dev"
 
   simulator:

@@ -4,12 +4,10 @@
 
 import express from "express";
 import { SessionData } from "../services/session";
-import { ServiceConfiguration } from "../services/lib/service-configuration";
 
 export default interface ExtendedRequest extends express.Request {
   session?: {
     sid: string;
     data: SessionData
-  };
-  serviceConfiguration: ServiceConfiguration;
+  }
 }

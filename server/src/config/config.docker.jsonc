@@ -11,5 +11,8 @@
     "security": {
       "cookieSecret": "qe12}$NOq12Jkl" // pre vytváranie signed cookies
     }
+  },
+  "redis": {
+    "host": "redis"
   }
 }

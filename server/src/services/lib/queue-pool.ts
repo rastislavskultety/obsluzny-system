@@ -2,6 +2,10 @@
  * QueuePool menežuje fronty a prideľuje ich novým požiadavkam.
  */
 
+import debug from 'debug';
+
+const debugPool = debug('pool');
+
 /*
  * Interface pre frontu.
  *
@@ -24,7 +28,7 @@ export type QueueFactory<T extends IQueue> = (id: number) => Promise<T>;
  */
 export class QueuePool<T extends IQueue> {
 
-  private queues: T[] = []; // pole obsahuje všetky vytvorené fronty
+  private queues: Promise<T>[] = []; // pole obsahuje všetky vytvorené fronty
 
   constructor(private queueFactory: QueueFactory<T>) { }
 
@@ -40,7 +44,8 @@ export class QueuePool<T extends IQueue> {
     // Ak môžeme vytvoriť ďalšiu frontu tak ju vytvoríme
     if (this.queues.length < maxNumberOfQueues) {
       const id = this.queues.length;
-      const queue = await this.queueFactory(id);
+      debugPool('creating queue %o', id);
+      const queue = this.queueFactory(id);
       this.queues.push(queue);
       return queue;
     }
@@ -55,7 +60,7 @@ export class QueuePool<T extends IQueue> {
 
     // Prehľadaj fronty
     for (let i = 0; i < numberOfQueues; ++i) {
-      const queue = this.queues[i];
+      const queue = await this.queues[i];
       const queueLength = await queue.length();
 
       // Ak sme na prvej fronte, tak jej dĺžka je zároveň najmenšou dĺžkou z prehľadaných front
@@ -90,13 +95,17 @@ export class QueuePool<T extends IQueue> {
    */
   async destroyStaleQueues(maxNumberOfQueues: number) {
     while (this.queues.length > maxNumberOfQueues) {
+
+      debugPool('test to remove stale queue %', this.queues.length - 1);
+
       // Zisti či je posledná z nadbytočných front prázdna, ak nie tak ukonči hľadanie.
       // Pre jednoduchosť sa odoberajú fronty iba z konca poľa
-      const queue = this.queues[this.queues.length - 1];
+      const queue = await this.queues[this.queues.length - 1];
       if (await queue.length() > 0) {
         break;
       }
       // Odstránenie zo zoznamu a zničenie frontu
+      debugPool('removing stale queue %o', this.queues.length - 1);
       this.queues.pop();
       await queue.destroy();
     }
@@ -106,7 +115,7 @@ export class QueuePool<T extends IQueue> {
    * Odstránenie včetkých front
    */
   async destroyAllQueues() {
-    this.queues.forEach(async q => await q.destroy());
+    this.queues.forEach(async q => await (await q).destroy());
     this.queues = [];
   }
 
@@ -120,8 +129,9 @@ export class QueuePool<T extends IQueue> {
   /*
    * Iterácia všetkých front
    */
-  forEachQueue(callback: (queue: T, index?: number, arr?: T[]) => void) {
-    this.queues.forEach(callback)
+  async forEachQueue(callback: (queue: T, index?: number, arr?: T[]) => void): Promise<void> {
+    const resolvedQueues = await Promise.all(this.queues)
+    resolvedQueues.forEach(queue => callback(queue));
   }
 
 }

@@ -1,31 +1,35 @@
-
-import { ServiceCenter } from "../service";
+import debug from 'debug';
 import { Queue } from '../lib/queue';
-import { workerData, parentPort, isMainThread } from "worker_threads";
-import { RPCServer } from "../lib/rpc";
-import { SocketServer } from "../lib/socket";
-import { createSocketTransport } from "../lib/transport/socket-transport";
+import { workerData, isMainThread, parentPort } from "worker_threads";
+import { RPCClient, RPCServer } from "../lib/rpc";
+import { createClientSocketTransport, createServerSocketTransport } from "../lib/transport/socket-transport";
+import { RemoteServiceCenter } from '../lib/remote-service-center';
+import { signalReady, validateWorker } from '../lib/worker-helpers';
 
-if (isMainThread) {
-  // tslint:disable-next-line:no-console
-  console.error('Queue worker thread: cannot be run as main thread');
-  process.exit(2);
-}
+const THREAD_NAME = 'Queue worker thread';
+const debugWorker = debug('worker');
 
-if (typeof workerData.id !== 'number') {
-  // tslint:disable-next-line:no-console
-  console.error('Queue worker thread: missing or invalid queue id');
-  process.exit(2)
-}
+debugWorker('%s started with data = %o', THREAD_NAME, workerData);
 
-if (typeof workerData.socketPath !== 'string') {
-  // tslint:disable-next-line:no-console
-  console.error('Queue worker thread: missing or invalid socketPath');
-  process.exit(2)
-}
+validateWorker(THREAD_NAME, {
+  'id': 'number',
+  'serviceCenterName': 'string'
+});
 
-const socket = new SocketServer(workerData.socketPath);
-const server = new RPCServer(createSocketTransport(socket));
-const queue = new Queue(workerData.id, new ServiceCenter());
+const serverTransport = createServerSocketTransport('queue' + workerData.id);
+const serverRpc = new RPCServer(serverTransport);
 
-server.registerObjectMethods(queue);
+const serviceTransport = createClientSocketTransport(workerData.serviceCenterName, 'queue_service_' + workerData.id);
+const serviceRpc = new RPCClient(serviceTransport);
+
+const queue = new Queue(workerData.id, new RemoteServiceCenter(serviceRpc));
+
+serverRpc.registerObjectMethods(queue);
+
+serverTransport.on('close', () => {
+  serviceTransport.close();
+  setImmediate(() => process.exit());
+});
+
+signalReady(serverTransport.waitReady(), serviceTransport.waitReady());
+
