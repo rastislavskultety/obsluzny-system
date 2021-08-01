@@ -1,6 +1,6 @@
 import { expect } from 'chai';
-import { Transport } from '../../../../src/services/lib/transport';
-import { createLogProxy, Logger } from '../../../test-lib/log-proxy';
+import { Transport } from '../../../src/services/lib/transport';
+import { createLogProxy, Logger } from '../../test-lib/log-proxy';
 import { setTimeout as wait } from 'timers/promises';
 
 class Channel {

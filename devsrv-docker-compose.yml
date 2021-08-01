@@ -34,3 +34,6 @@ services:
 
   web:
     build: client
+
+  redis:
+    image: redis

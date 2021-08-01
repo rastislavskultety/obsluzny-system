@@ -9,7 +9,7 @@ import { RedisStore } from "./redis-store";
 /*
  * Definícia štruktúry parametrov
  */
-export interface ServiceConfigurationData {
+export interface ServiceConfiguration {
   numberOfQueues: number; // parameter n, celé číslo > 0
   queueCapacity: number; // parameter m, celé číslo > 0
   meanServiceTime: number; // parameter t, v sekundách, >= 0
@@ -29,7 +29,7 @@ export interface ServiceConfigurationData {
 /*
  * Test validity parametrov
  */
-export function configurationIsValid(config: ServiceConfigurationData): boolean {
+export function configurationIsValid(config: ServiceConfiguration): boolean {
   return Number.isInteger(config.numberOfQueues) &&
     config.numberOfQueues > 0 &&
     Number.isInteger(config.queueCapacity) &&
@@ -42,12 +42,12 @@ export class ServiceConfigurationStore {
 
   constructor(private store: RedisStore) { }
 
-  async get(): Promise<ServiceConfigurationData> {
+  async get(): Promise<ServiceConfiguration> {
     const configJson = await this.store.call('get', 'service');
     return JSON.parse(configJson);
   }
 
-  async set(config: ServiceConfigurationData) {
+  async set(config: ServiceConfiguration) {
     if (!configurationIsValid(config)) throw new Error("Invalid configuration");
     await this.store.call('set', 'service', JSON.stringify(config));
   }

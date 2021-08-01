@@ -2,18 +2,17 @@
  * Server je objekt ktorý poskytuje business logiku a podporné služby pre api
  */
 
-import path from 'path';
-import { QueuePool } from "./lib/queue-pool";
-import { QueueStats } from "./lib/queue";
+import configuration from '../configuration';
+import { RemotePool } from "./lib/queues";
 import { ServiceConfigurationStore } from "./lib/service-configuration";
-import { createSessionStore, SessionData } from "./session";
-import { ServiceQueue } from "./lib/service-center";
-import { RemoteQueue } from "./lib/remote-queue";
-import { RPCClient } from "./lib/rpc";
+import { createSessionStore } from "./session";
+import { ServiceRequest, ServiceResponse } from "./lib/service-center";
 import { createClientSocketTransport } from "./lib/transport/socket-transport";
 import { createWorkerThread } from './lib/worker-helpers';
 import { RedisStore } from './lib/redis-store';
-import configuration from '../configuration';
+import { workers } from './workers';
+import { Worker } from 'worker_threads';
+import { RPCClient } from "./lib/rpc";
 
 /*
  * Servisné stredisko simuluje spracovanie požiadavok užívateľov.
@@ -24,27 +23,12 @@ import configuration from '../configuration';
  * Všetky servisné centrá sú simulované jedným objektom.
  */
 
-
-const workers = {
-  queue: path.resolve(__dirname, './workers/queue.js'),
-  service: path.resolve(__dirname, './workers/service.js'),
+function startServiceCenterThread(serviceCenterName: string): Promise<Worker> {
+  return createWorkerThread(workers.service, { serviceCenterName, configuration });
 }
 
-/*
- * Factory pre vytvárnie frontov požiadaviek pre jednotlivé strediská
- *
- * Každá fronta je identifikovaná parametrom id, čo je celé číslo.
- */
-function createQueueFactory(serviceCenterName: string) {
-  return async (id: number): Promise<ServiceQueue> => {
-    await createWorkerThread(workers.queue, { id, serviceCenterName, configuration });
-    const rpcClient = new RPCClient(createClientSocketTransport('queue' + id, 'queue_client_' + id));
-    return new RemoteQueue(id, rpcClient);
-  }
-}
-
-function startServiceCenter(serviceCenterName: string) {
-  createWorkerThread(workers.service, { serviceCenterName, configuration });
+function startPoolThread(poolName: string, serviceCenterName: string): Promise<Worker> {
+  return createWorkerThread(workers.pool, { poolName, serviceCenterName, configuration });
 }
 
 /*
@@ -60,18 +44,14 @@ export interface ServerStats {
   avgWaitingTime: number // priemerný čas čakania požiadaviek na vybavenie (čakanie vo fronte + čakanie na vybavenie)
 }
 
-const SERVICE_CENTER_NAME = 'service';
+const SERVICE_CENTER_SOCKET_NAME = 'service';
+const POOL_SOCKET_NAME = 'pool';
 
 /*
  * Server pre aplikačnú logiku
  */
 export class Server {
   private redisStore = new RedisStore(configuration.redis);
-  /*
-   * queuePool menežuje fronty požiadaviek a prideľuje fronty podľa
-   * aktuálnej obsadenosti všetkých frontov.
-   */
-  readonly queuePool = new QueuePool<ServiceQueue>(createQueueFactory(SERVICE_CENTER_NAME));
 
   /*
    * sessionStore umožňuje menežovanie aktuálnych relácií (sessions) užívateľov.
@@ -79,13 +59,25 @@ export class Server {
   readonly sessionStore = createSessionStore(this.redisStore);
 
   /*
+   * queuePool menežuje fronty požiadaviek a prideľuje fronty podľa
+   * aktuálnej obsadenosti všetkých frontov.
+   */
+  readonly queuePool = new RemotePool<ServiceRequest, ServiceResponse>(new RPCClient(
+    createClientSocketTransport(POOL_SOCKET_NAME, 'pool_client_' + process.pid))
+  );
+
+  /*
    * serviceConfigurationStore ukladá aktuálnu konfiguráciu servisných centier
    */
   readonly serviceConfigurationStore = new ServiceConfigurationStore(new RedisStore(configuration.redis));
 
   constructor() {
+    // Nastavenie počiatočnej konfigurácie servisných centier
     this.serviceConfigurationStore.set(configuration.service);
-    startServiceCenter(SERVICE_CENTER_NAME);
+
+    // Spusti obslužné thready
+    startServiceCenterThread(SERVICE_CENTER_SOCKET_NAME);
+    startPoolThread(POOL_SOCKET_NAME, SERVICE_CENTER_SOCKET_NAME);
   }
 
   /*
@@ -95,28 +87,14 @@ export class Server {
     const activeUsers = await this.sessionStore.count();
     const numberOfQueues = await this.queuePool.count();
 
-    let queuedRequests = 0;
-    let completedRequests = 0;
-    let rejectedRequests = 0;
-    let serviceBusyTime = 0;
-    let serviceIdleTime = 0;
-    let totalWaitTime = 0;
+    const stats = await this.queuePool.getStats();
 
-    const arr: Promise<QueueStats>[] = [];
-
-    console.log('calling forEachQueue');
-    await this.queuePool.forEachQueue((queue: ServiceQueue) => arr.push(queue.getStats()));
-
-    const queueStats = await Promise.all(arr);
-    console.log('queueStats', queueStats);
-    queueStats.forEach(stats => {
-      queuedRequests += stats.queuedRequests;
-      completedRequests += stats.completedRequests;
-      rejectedRequests += stats.rejectedRequests;
-      serviceBusyTime += stats.serviceBusyTime;
-      serviceIdleTime += stats.serviceIdleTime;
-      totalWaitTime += stats.totalWaitTime;
-    });
+    const queuedRequests = stats.queuedRequests;
+    const completedRequests = stats.completedRequests;
+    const rejectedRequests = stats.rejectedRequests;
+    const serviceBusyTime = stats.serviceBusyTime;
+    const serviceIdleTime = stats.serviceIdleTime;
+    const totalWaitTime = stats.totalWaitTime;
 
     const totalTime = serviceBusyTime + serviceIdleTime;
     const serviceUtilization = totalTime ? (serviceBusyTime / totalTime) : 0;
@@ -136,10 +114,8 @@ export class Server {
   /*
    * Vynulovanie monitorovacích údajov
    */
-  async resetStats() {
-    const arr: Promise<void>[] = [];
-    this.queuePool.forEachQueue((queue: ServiceQueue) => arr.push(queue.resetStats()));
-    await Promise.all(arr);
+  resetStats(): Promise<void> {
+    return this.queuePool.resetStats();
   }
 }
 

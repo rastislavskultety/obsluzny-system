@@ -7,10 +7,9 @@
     "serviceTimeDeviation": 0.5 // parameter r, v sekundách, musí byť >= 0 a zároveň < meanServiceTime
   },
   "server": {
-    "logging": false, // logovanie http požiadaviek na konzolu
     "security": {
       "cookieSecret": "qe12}$NOq12Jkl" // pre vytváranie signed cookies
     }
   },
-  "redis": {}
+  "redis": {} // nastavenia pre redis klienta
 }

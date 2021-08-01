@@ -1,9 +1,9 @@
+import { IQueue } from './interfaces';
 import { QueueStats } from './queue';
-import { IQueue } from './queue-pool';
-import { RPCClient } from './rpc';
+import { RPCClient } from '../rpc';
 
 
-export class RemoteQueue<Request, Response> implements IQueue {
+export class RemoteQueue<Request, Response> implements IQueue<Request, Response>{
 
   constructor(public id: number, private rpc: RPCClient) { }
 

@@ -1,4 +1,4 @@
-import { configurationIsValid, ServiceConfigurationData, ServiceConfigurationStore } from '../../../src/services/lib/service-configuration';
+import { configurationIsValid, ServiceConfiguration, ServiceConfigurationStore } from '../../../src/services/lib/service-configuration';
 import { expect } from 'chai';
 import { RedisStore } from '../../../src/services/lib/redis-store';
 
@@ -61,14 +61,14 @@ describe('service-configuration.ts', () => { // the tests container
   });
 
   it('set zmení konfiguráciu', async () => {
-    const newConfig: ServiceConfigurationData = {
+    const newConfig: ServiceConfiguration = {
       numberOfQueues: 55,
       queueCapacity: 66,
       meanServiceTime: 3.3,
       serviceTimeDeviation: 1.1
     }
 
-    let s = new ServiceConfigurationStore(redisStore);
+    const s = new ServiceConfigurationStore(redisStore);
 
     await s.set(newConfig);
     expect(await s.get()).to.deep.equal(newConfig);
@@ -78,14 +78,14 @@ describe('service-configuration.ts', () => { // the tests container
   it('set hodí chybu pre neplatnú konfiguráciu', async () => {
     let error = null;
 
-    const newConfig: ServiceConfigurationData = {
+    const newConfig: ServiceConfiguration = {
       numberOfQueues: 0, // chyba
       queueCapacity: 66,
       meanServiceTime: 3.3,
       serviceTimeDeviation: 1.1
     }
 
-    let s = new ServiceConfigurationStore(redisStore);
+    const s = new ServiceConfigurationStore(redisStore);
 
     try {
       await s.set(newConfig);

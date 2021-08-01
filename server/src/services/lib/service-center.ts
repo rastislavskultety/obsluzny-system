@@ -5,9 +5,9 @@
  * Požiadavky špecifikujú počet citátov, ktoré požadujú v rámci jednej služby.
  */
 
-import { IServiceCenter } from "./queue";
+import { IServiceCenter } from "./queues";
 import { fetchRandomQuotes, Quote } from "./quotes";
-import { RemoteQueue } from "./remote-queue";
+import { RemoteQueue } from "./queues";
 import { rpc } from "./rpc";
 import debug from 'debug';
 import { ServiceConfigurationStore } from "./service-configuration";

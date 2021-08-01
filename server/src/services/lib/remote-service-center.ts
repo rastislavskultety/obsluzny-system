@@ -1,4 +1,4 @@
-import { IServiceCenter } from "./queue";
+import { IServiceCenter } from "./queues";
 import { RPCClient } from "./rpc";
 import { ServiceRequest, ServiceResponse } from "./service-center";
 

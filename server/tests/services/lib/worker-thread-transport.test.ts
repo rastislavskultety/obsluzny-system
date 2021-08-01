@@ -1,13 +1,13 @@
 import { expect } from 'chai';
 import { Worker, MessageChannel, MessagePort, isMainThread, workerData, parentPort } from 'worker_threads';
-import { workerTypescript } from '../../../test-lib/ts-worker';
-import { createMessagePortTransport, createWorkerTransport } from '../../../../src/services/lib/transport';
+import { workerTypescript } from '../../test-lib/ts-worker';
+import { createMessagePortTransport, createWorkerTransport } from '../../../src/services/lib/transport';
 import { setTimeout as wait, setImmediate as nextTick } from 'timers/promises'
 
 if (isMainThread) {
 
   const startWorker = (id: string, slavePort?: MessagePort): Worker => {
-    let options = slavePort ? {
+    const options = slavePort ? {
       workerData: { id, slavePort },
       transferList: [slavePort]
     } : {
@@ -32,9 +32,9 @@ if (isMainThread) {
     describe('Using MessageChannel', () => {
 
       const setupUsingMessageChannel = () => {
-        let { port1: masterPort, port2: slavePort } = new MessageChannel();
-        let worker = startWorker('workerEchoMessagePort', slavePort);
-        let transport = createMessagePortTransport(masterPort);
+        const { port1: masterPort, port2: slavePort } = new MessageChannel();
+        const worker = startWorker('workerEchoMessagePort', slavePort);
+        const transport = createMessagePortTransport(masterPort);
         return { worker, transport };
       }
 
@@ -60,7 +60,7 @@ if (isMainThread) {
 
         const { worker, transport } = setupUsingMessageChannel();
 
-        let sends = [];
+        const sends = [];
         for (let i = 0; i < N; ++i) {
           sends.push(transport.send('hello', 'world', i, Math.random() * MAX_DELAY))
         }
@@ -109,8 +109,8 @@ if (isMainThread) {
     describe('Using Worker & parentPort', () => {
 
       const setupUsingWorker = () => {
-        let worker = startWorker('workerEchoParentPort');
-        let transport = createWorkerTransport(worker);
+        const worker = startWorker('workerEchoParentPort');
+        const transport = createWorkerTransport(worker);
         return { worker, transport };
       }
 
@@ -120,7 +120,7 @@ if (isMainThread) {
 
         const { worker, transport } = setupUsingWorker();
 
-        let sends = [];
+        const sends = [];
         for (let i = 0; i < N; ++i) {
           sends.push(transport.send('hello', 'world', i, Math.random() * MAX_DELAY))
         }
@@ -168,9 +168,9 @@ if (isMainThread) {
     describe('Error handling', () => {
 
       const setupFail = () => {
-        let { port1: masterPort, port2: slavePort } = new MessageChannel();
-        let worker = startWorker('workerFail', slavePort);
-        let transport = createMessagePortTransport(masterPort);
+        const { port1: masterPort, port2: slavePort } = new MessageChannel();
+        const worker = startWorker('workerFail', slavePort);
+        const transport = createMessagePortTransport(masterPort);
         return { worker, transport };
       }
 
@@ -179,7 +179,7 @@ if (isMainThread) {
 
         let error;
         try {
-          let result = await transport.send();
+          const result = await transport.send();
           console.log('RESULT', result)
         } catch (err) {
           error = err;
@@ -197,7 +197,7 @@ if (isMainThread) {
   const testWorkerThreads: { [index: string]: () => void } = {
     // Echo message on slavePort
     workerEchoMessagePort() {
-      let transport = createMessagePortTransport(workerData.slavePort);
+      const transport = createMessagePortTransport(workerData.slavePort);
 
       transport.on('message', async (reply, a: string, b: string, id: number, delay: number) => {
         await wait(delay);
@@ -207,7 +207,7 @@ if (isMainThread) {
 
     // Echo message on parentPort
     workerEchoParentPort() {
-      let transport = createMessagePortTransport(parentPort!);
+      const transport = createMessagePortTransport(parentPort!);
 
       transport.on('message', async (reply, a: string, b: string, id: number, delay: number) => {
         await wait(delay);
@@ -216,7 +216,7 @@ if (isMainThread) {
     },
 
     workerFail() {
-      let transport = createMessagePortTransport(workerData.slavePort);
+      const transport = createMessagePortTransport(workerData.slavePort);
 
       transport.on('message', async (reply) => {
         reply(new Error('test error'));

@@ -27,4 +27,4 @@ services:
     build: client
 
   redis:
-    from: redis
+    image: redis

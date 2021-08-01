@@ -6,8 +6,8 @@ import { Worker } from 'worker_threads';
  * See: https://stackoverflow.com/a/57949531
  */
 export const workerTypescript = (file: string, options?: any): Worker => {
-  let data = Object.assign({}, options?.workerData, { __filename: file })
-  let opts = Object.assign({}, options, {
+  const data = Object.assign({}, options?.workerData, { __filename: file })
+  const opts = Object.assign({}, options, {
     eval: true,
     workerData: data
   });

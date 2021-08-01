@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { RPCClient, RPCServer } from '../../../src/services/lib/rpc';
+import { getRpcDecoratedMethods, rpc, RPCClient, RPCServer } from '../../../src/services/lib/rpc';
 import { createClientSocketTransport, createServerSocketTransport } from '../../../src/services/lib/transport';
 
 
@@ -20,10 +20,10 @@ describe('rpc', function () {
   // this.timeout(5000);
 
   before(async () => {
-    let serverTransport = createServerSocketTransport('server');
+    const serverTransport = createServerSocketTransport('server');
     await serverTransport.waitReady();
 
-    let clientTransport = createClientSocketTransport('server', 'client');
+    const clientTransport = createClientSocketTransport('server', 'client');
     await clientTransport.waitReady();
 
     serverRpc = new RPCServer(serverTransport);
@@ -66,4 +66,29 @@ describe('rpc', function () {
     expect(error).to.be.an('object'); // pri prenose cez rpc sa Error zmení na Object literal
     expect(error.message).to.eq('test error 2');
   });
+
+  it('rpc decorator should create $rpc property on prototype', () => {
+    class Base {
+      @rpc a() { }
+      m1() { }
+    }
+
+    class Derived1 extends Base {
+      @rpc b() {
+      }
+      m2() { }
+    }
+
+    class Derived2 extends Derived1 {
+      @rpc c() {
+      }
+      m3() { }
+    }
+
+    expect((Base.prototype as any).$rpc).to.deep.eq(['a'])
+    expect((Derived1.prototype as any).$rpc).to.deep.eq(['b'])
+    expect((Derived2.prototype as any).$rpc).to.deep.eq(['c'])
+    expect(getRpcDecoratedMethods(new Derived2())).to.deep.eq(['c', 'b', 'a']);
+  });
+
 })

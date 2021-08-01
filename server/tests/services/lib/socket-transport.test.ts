@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { createClientSocketTransport, createServerSocketTransport, Transport } from '../../../../src/services/lib/transport';
+import { createClientSocketTransport, createServerSocketTransport, Transport } from '../../../src/services/lib/transport';
 
 
 describe('socket-transport', function () {

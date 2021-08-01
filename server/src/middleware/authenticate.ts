@@ -38,7 +38,7 @@ export function authenticate(server: Server) {
         (req.signedCookies ? req.signedCookies.sid : (req.cookies && req.cookies.sid));
 
       // Over existenciu cookie
-      if (await server.sessionStore.sessionExists(sid)) {
+      if (typeof sid === 'string' && await server.sessionStore.sessionExists(sid)) {
         // Získaj uložené dáta o relácii
         const data = await server.sessionStore.getSessionData(sid);
 

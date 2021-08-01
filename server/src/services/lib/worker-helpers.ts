@@ -3,7 +3,7 @@ import { isMainThread, parentPort, Worker, workerData } from "worker_threads";
 
 const debugWorker = debug('worker');
 
-export async function createWorkerThread(file: string, data: { [index: string]: any }): Promise<void> {
+export async function createWorkerThread(file: string, data: { [index: string]: any }): Promise<Worker> {
   debugWorker('Starting thread %o', file);
 
   const worker = new Worker(file, { workerData: data });
@@ -14,7 +14,7 @@ export async function createWorkerThread(file: string, data: { [index: string]: 
   return new Promise((resolve, reject) => worker.on('message', (value) => {
     switch (value) {
       case 'ready':
-        resolve();
+        resolve(worker);
         break;
       case 'error':
         reject(new Error('Worker thread error'));

@@ -15,7 +15,7 @@ export function createLogProxy<T>(target: T, log: any[]): T {
 
 export class Logger extends Array {
   select(...args: any) {
-    let arr = [...args];
+    const arr = [...args];
     return this.filter((logItem: any[]) => JSON.stringify(arr) === JSON.stringify(logItem.slice(0, arr.length)));
   }
 }

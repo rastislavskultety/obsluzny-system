@@ -1,5 +1,6 @@
 import { Transport } from '../transport/transport';
 import debug from 'debug';
+import { getRpcDecoratedMethods } from './rpc-decorator';
 
 const debugRpc = debug('rpc');
 
@@ -30,16 +31,16 @@ export class RPCServer {
     this.methods[method] = fn;
   }
 
-  registerObjectMethods(object: object, rpcMethods?: string[]): void {
-    rpcMethods = rpcMethods || object.constructor.prototype.$rpc;
+  registerObjectMethods(obj: object, rpcMethods?: string[]): void {
+    rpcMethods = rpcMethods || getRpcDecoratedMethods(obj);
 
-    if (!rpcMethods || !Array.isArray(rpcMethods) || rpcMethods.length === 0) {
-      throw new Error('There are no rpc methods on ' + object.constructor.name);
+    if (Array.isArray(rpcMethods) && rpcMethods.length > 0) {
+      rpcMethods.forEach((method: string) => {
+        this.register(method, async (...args: any[]): Promise<any> => (obj as any)[method](...args))
+      });
+    } else {
+      throw new Error('There are no rpc methods on ' + obj.constructor.name);
     }
-
-    rpcMethods.forEach((method: string) => {
-      this.register(method, async (...args: any[]): Promise<any> => (object as any)[method](...args))
-    });
   }
 
   close() {

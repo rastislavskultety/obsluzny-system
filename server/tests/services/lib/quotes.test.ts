@@ -3,7 +3,7 @@ import { expect } from 'chai';
 
 describe('quotes.ts', () => {
   it('Získanie náhodne vybraných citátov', async () => {
-    let quotes = await Quotes.fetchRandomQuotes(3);
+    const quotes = await Quotes.fetchRandomQuotes(3);
 
     expect(quotes).to.be.an('array');
     expect(quotes.length).to.eq(3);

@@ -47,7 +47,7 @@ describe('session-store.ts', () => {
     const username = 'Ján Novák';
     const s = new SessionStore<Data>(redisStore);
 
-    let sid = await s.createSession({ username });
+    const sid = await s.createSession({ username });
     expect(await s.sessionExists(sid)).to.eq(true);
     expect(await s.getSessionData(sid)).to.deep.equal({ username });
 
@@ -59,7 +59,7 @@ describe('session-store.ts', () => {
     const username = 'Ján Novák';
     const s = new SessionStore<Data>(redisStore);
 
-    let sid = await s.createSession({ username });
+    const sid = await s.createSession({ username });
     expect(await s.sessionExists(sid)).to.eq(true);
     await s.destroySession(sid);
     expect(await s.sessionExists(sid)).to.eq(false);

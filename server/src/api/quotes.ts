@@ -5,7 +5,6 @@
 import express from "express";
 import Server from "../services/server";
 import { handleInvalidSession } from "./lib/utils";
-import ExtendedRequest from '../middleware/extended-request';
 
 export default function (server: Server) {
   const router = express.Router({ mergeParams: true });
@@ -13,8 +12,8 @@ export default function (server: Server) {
   router.get('/', async (req, res, next) => {
     try {
       const countLimit = 1000;
-      console.log('DISABLED SECURITY');
-      // if (handleInvalidSession(req, res)) return;
+
+      if (handleInvalidSession(req, res)) return;
 
       // Parameter count môže byť v url query alebo v tele http požiadavku
 
@@ -29,23 +28,19 @@ export default function (server: Server) {
         return res.status(400).send({ error: "Parameter count must be less than " + countLimit })
       }
 
-      const conf = await server.serviceConfigurationStore.get(); // Aktuálna konfigurácia služieb
-
       try {
 
         const pool = server.queuePool;
 
-        // Získaj frontu pre uloženie požiadavky
-        const queue = await pool.allocateQueue(conf.numberOfQueues);
-
         // Vloženie požidavku do fronty, vráti sa odozva zo služby
-        const quotes = await queue.enqueue({ count }, conf.queueCapacity);
-
-        // Údržba...
-        await pool.destroyStaleQueues(conf.numberOfQueues);
+        const resp = await pool.enqueue({ count });
 
         // Odoslanie odozvy
-        res.send({ quotes, serviceCenter: queue.id + 1 });
+        res.send({
+          quotes: resp.response,
+          serviceCenter: resp.serviceCenter
+        });
+
       } catch (err) {
 
         // Ošetrenie chyby prekročenia kapacity fronty

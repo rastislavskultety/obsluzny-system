@@ -1,5 +1,5 @@
 import debug from 'debug';
-import { Queue } from '../lib/queue';
+import { Queue } from '../lib/queues';
 import { workerData, isMainThread, parentPort } from "worker_threads";
 import { RPCClient, RPCServer } from "../lib/rpc";
 import { createClientSocketTransport, createServerSocketTransport } from "../lib/transport/socket-transport";

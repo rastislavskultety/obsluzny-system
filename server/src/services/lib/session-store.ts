@@ -43,6 +43,7 @@ export class SessionStore<T> {
    * Asynchrónnosť je tu aby sa mohlo v budúcnosti prejsť na externú databázu
    */
   async sessionExists(sid: string): Promise<boolean> {
+    if (typeof sid !== 'string') throw new Error(`Invalid sid ${sid}`);
     return 1 === await this.store.call('sismember', storeKeys.session, sid);
   }
 

@@ -24,7 +24,6 @@ abstract class SocketChannel extends EventEmitter {
     this.ready = true;
     this.emit('ready');
   }
-
 }
 
 class ServerSocketChannel extends SocketChannel implements ITransportChannel {
