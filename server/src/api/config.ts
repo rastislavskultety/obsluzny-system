@@ -14,7 +14,7 @@ export default function config(server: Server) {
    */
   router.get('/', async (req, res, next) => {
     try {
-      res.send(await server.getServiceConfiguration());
+      res.send(await server.serviceConfigurationStore.get());
     } catch (err) {
       next(err)
     }
@@ -36,7 +36,7 @@ export default function config(server: Server) {
         meanServiceTime: req.body.meanServiceTime,
         serviceTimeDeviation: req.body.serviceTimeDeviation,
       }
-      await server.setServiceConfiguration(conf);
+      await server.serviceConfigurationStore.set(conf);
       res.send({ message: 'success' });
     } catch (err) {
       next(err)

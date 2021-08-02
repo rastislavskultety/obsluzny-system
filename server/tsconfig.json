@@ -1,8 +1,7 @@
 {
+  "extends": "@tsconfig/node16/tsconfig.json",
   "compilerOptions": {
-    "module": "commonjs",
-    "esModuleInterop": true,
-    "target": "es6",
+    "experimentalDecorators": true,
     "noImplicitAny": true,
     "moduleResolution": "node",
     "sourceMap": true,
@@ -15,6 +14,7 @@
     }
   },
   "include": [
-    "src/**/*"
+    "src/**/*",
+    // "tests/**/*"
   ]
 }

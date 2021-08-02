@@ -7,9 +7,10 @@
     "serviceTimeDeviation": 0.5 // parameter r, v sekundách, musí byť >= 0 a zároveň < meanServiceTime
   },
   "server": {
-    "logging": false, // logovanie http požiadaviek na konzolu
+    "clusterSize": 3, // počet inštancií http servera v clusteri
     "security": {
       "cookieSecret": "qe12}$NOq12Jkl" // pre vytváranie signed cookies
     }
-  }
+  },
+  "redis": {} // nastavenia pre redis klienta
 }

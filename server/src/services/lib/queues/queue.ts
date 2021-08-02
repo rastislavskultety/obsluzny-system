@@ -4,7 +4,8 @@
  * Fronta má priradené stredisko ktoré vybavuje požiadavky.
  */
 
-import { IQueue } from "./queue-pool";
+import { IQueue, IServiceCenter } from './interfaces';
+import { rpc } from '../rpc';
 
 /*
  * Položka vo fronte ktorá obsahuje požiadavku.
@@ -16,12 +17,6 @@ interface QueueItem<Request, Response> {
   request: Request // užívateľská požiadavka ktorá je predaná stredisku na vybavenie
 }
 
-/*
- * Definícia rozhrania strediska, ktoré používa fronta na vybavovie požiadaviek
- */
-export interface IServiceCenter<Request, Response> {
-  serve: (request: Request) => Promise<Response>;
-}
 
 
 /*
@@ -42,7 +37,7 @@ export interface QueueStats {
  * Požiadavky sa vkladajú do fronty až do naplnenia kapacity. Požiadavka čaká vo fronte až kým nie
  * je spracovaná strediskom a potom sa uvoľní z fronty. Fronta pracuje ako FIFO rad.
  */
-export class Queue<Request, Response> implements IQueue {
+export class Queue<Request, Response> implements IQueue<Request, Response> {
   // Časová známka ktorá sa používa pre výpočet doby obsadenosti/neobsadenosti strediska
   private lastTimestamp: number = Date.now();
 
@@ -70,24 +65,15 @@ export class Queue<Request, Response> implements IQueue {
   }
 
   /*
-   * Zničenie fronty
-   *
-   * V odvodených triedach by tu mohlo byť vymazanie perzistných informácií (napr. z redis databázy)
-   */
-  async destroy() {
-    this.queue = [];
-  }
-
-  /*
    * Pridanie požiadavky do fronty.
    *
    * Kapacita fronty sa môže  meniť zmenou dynamickou zmenou konfigurácie servera.
    */
-  enqueue(request: Request, capacity: number): Promise<Response> {
+  @rpc enqueue(request: Request, capacity: number): Promise<Response> {
     // Ak je fronta plná, vytvor výnimku
     if (this.queue.length >= capacity) {
       this.stats.rejectedRequests += 1;
-      throw new Error('Queue capacity exceeded');
+      return Promise.reject(new Error('Queue capacity exceeded'));
     }
 
     // Vloženie požiadavky do radu
@@ -158,8 +144,8 @@ export class Queue<Request, Response> implements IQueue {
    *
    * Poznámka: asynchronnosť je tu pre budúce rozšírenia triedy
    */
-  async length(): Promise<number> {
-    return this.queue.length;
+  @rpc length(): Promise<number> {
+    return Promise.resolve(this.queue.length);
   }
 
   /*
@@ -167,7 +153,7 @@ export class Queue<Request, Response> implements IQueue {
    *
    * Poznámka: asynchronnosť je tu pre budúce rozšírenia triedy
    */
-  async getStats(): Promise<QueueStats> {
+  @rpc getStats(): Promise<QueueStats> {
     // Korekcia doby obsadenia strediska vzhľadom na aktuálny čas, pretože
     // sa aktualizuje iba pri spracovaní požiadavky
     let serviceBusyTime = this.stats.serviceBusyTime;
@@ -179,14 +165,14 @@ export class Queue<Request, Response> implements IQueue {
       serviceIdleTime += correction;
     }
 
-    return Object.assign(
+    return Promise.resolve(Object.assign(
       {},
       this.stats,
       {
         serviceBusyTime,
         serviceIdleTime,
         queuedRequests: this.queue.length
-      });
+      }));
   }
 
   /*
@@ -194,11 +180,16 @@ export class Queue<Request, Response> implements IQueue {
    *
    * Poznámka: asynchronnosť je tu pre budúce rozšírenia triedy
    */
-  async resetStats(): Promise<void> {
+  @rpc resetStats(): Promise<void> {
     this.stats.completedRequests =
       this.stats.rejectedRequests =
       this.stats.serviceBusyTime =
       this.stats.serviceIdleTime =
       this.stats.totalWaitTime = 0;
+    return Promise.resolve();
+  }
+
+  destroy(): Promise<void> {
+    return Promise.resolve();
   }
 }

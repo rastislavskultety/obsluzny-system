@@ -7,12 +7,14 @@
 import stripJsonComments from 'strip-json-comments';
 import path from 'path';
 import fs from 'fs';
+import debug from 'debug';
+
+const debugFile = debug('file');
 
 const configFileName = process.env.CONFIG_FILE || 'config.local.jsonc';
 const configPath = path.resolve(__dirname, './config/' + configFileName);
 
-// tslint:disable-next-line:no-console
-console.log('Loading configuration from ' + configPath);
+debugFile('Loading configuration from %o', configPath);
 
 /*
  * Synchrónne načítanie súbora a parsovanie

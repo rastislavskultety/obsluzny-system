@@ -2,31 +2,15 @@
  * Server je objekt ktorý poskytuje business logiku a podporné služby pre api
  */
 
-import { QueuePool } from "./lib/queue-pool";
-import { Queue, QueueStats } from "./lib/queue";
-import { getConfiguration, ServiceConfiguration, setConfiguration } from "./lib/service-configuration";
+import { RemotePool } from "./lib/queues";
+import { ServiceConfigurationStore } from "./lib/service-configuration";
 import { createSessionStore, SessionData } from "./session";
-import { ServiceCenter, ServiceQueue, ServiceRequest, ServiceResponse } from "./service";
-import { SessionStore } from "./lib/session-store";
-
-/*
- * Servisné stredisko simuluje spracovanie požiadavok užívateľov.
- *
- * Táto implementácia vytvára službu ktorá vracia citáty známych osobnosti ktoré
- * sú náhodne vybrané z databázy.
- *
- * Všetky servisné centrá sú simulované jedným objektom.
- */
-const serviceCenter = new ServiceCenter();
-
-/*
- * Factory pre vytvárnie frontov požiadaviek pre jednotlivé strediská
- *
- * Každá fronta je identifikovaná parametrom id, čo je celé číslo.
- */
-function queueFactory(id: number): ServiceQueue {
-  return new Queue<ServiceRequest, ServiceResponse>(id, serviceCenter);
-}
+import { ServiceRequest, ServiceResponse } from "./lib/service-center";
+import { createClientSocketTransport } from "./lib/transport";
+import { RedisStore } from './lib/redis-store';
+import { POOL_SOCKET_NAME } from './workers';
+import { RPCClient } from "./lib/rpc";
+import { SessionStore } from './lib/session-store';
 
 /*
  * Monitorovacie údaje servera
@@ -45,67 +29,57 @@ export interface ServerStats {
  * Server pre aplikačnú logiku
  */
 export class Server {
-  private _queuePool = new QueuePool<ServiceQueue>(queueFactory);
-  private _sessionStore = createSessionStore();
+  private redisStore: RedisStore;
+
+  /*
+   * sessionStore umožňuje menežovanie aktuálnych relácií (sessions) užívateľov.
+   */
+  readonly sessionStore: SessionStore<SessionData>;
 
   /*
    * queuePool menežuje fronty požiadaviek a prideľuje fronty podľa
    * aktuálnej obsadenosti všetkých frontov.
    */
-  queuePool(): QueuePool<ServiceQueue> {
-    return this._queuePool;
-  }
+  readonly pool = new RemotePool<ServiceRequest, ServiceResponse>(new RPCClient(
+    createClientSocketTransport(POOL_SOCKET_NAME, 'pool_client_' + process.pid))
+  );
 
   /*
-   * sessionStore umožňuje menežovanie aktuálnych relácií (sessions) užívateľov.
+   * serviceConfigurationStore ukladá aktuálnu konfiguráciu servisných centier
    */
-  sessionStore(): SessionStore<SessionData> {
-    return this._sessionStore;
-  }
+  readonly serviceConfigurationStore: ServiceConfigurationStore;
 
-  /*
-   * Získanie konfigurácie služieb (parametrov n, m, t, r zo zadania).
-   *
-   * Tieto parametre je možné dynamicky meniť počas prevádzky servera pomocou rest api.
-   */
-  async getServiceConfiguration(): Promise<ServiceConfiguration> {
-    return await getConfiguration();
-  }
+  constructor(configuration: any) {
+    this.redisStore = new RedisStore(configuration.redis);
 
-  /*
-   * Nastavenie novej konfigurácie služieb
-   */
-  async setServiceConfiguration(conf: ServiceConfiguration) {
-    return await setConfiguration(conf);
+    // Vymazanie všetkých dát z redisu
+    this.redisStore.call('flushall');
+
+    // Store pre sessions
+    this.sessionStore = createSessionStore(this.redisStore);
+
+    // Store pre konfigurácie
+    this.serviceConfigurationStore = new ServiceConfigurationStore(this.redisStore);
+
+    // Nastavenie počiatočnej konfigurácie servisných centier
+    this.serviceConfigurationStore.set(configuration.service);
   }
 
   /*
    * Monitorovanie servera - získanie aktuálnych informácií.
    */
   async getStats(): Promise<ServerStats> {
-    const activeUsers = await this._sessionStore.count();
-    const numberOfQueues = await this._queuePool.count();
+    const activeUsers = await this.sessionStore.count();
+    const numberOfQueues = await this.pool.count();
 
-    let queuedRequests = 0;
-    let completedRequests = 0;
-    let rejectedRequests = 0;
-    let serviceBusyTime = 0;
-    let serviceIdleTime = 0;
-    let totalWaitTime = 0;
+    const stats = await this.pool.getStats();
 
-    const arr: Promise<QueueStats>[] = [];
-
-    this._queuePool.forEachQueue((queue: ServiceQueue) => arr.push(queue.getStats()));
-
-    const queueStats = await Promise.all(arr);
-    queueStats.forEach(stats => {
-      queuedRequests += stats.queuedRequests;
-      completedRequests += stats.completedRequests;
-      rejectedRequests += stats.rejectedRequests;
-      serviceBusyTime += stats.serviceBusyTime;
-      serviceIdleTime += stats.serviceIdleTime;
-      totalWaitTime += stats.totalWaitTime;
-    });
+    const queuedRequests = stats.queuedRequests;
+    const completedRequests = stats.completedRequests;
+    const rejectedRequests = stats.rejectedRequests;
+    const serviceBusyTime = stats.serviceBusyTime;
+    const serviceIdleTime = stats.serviceIdleTime;
+    const totalWaitTime = stats.totalWaitTime;
 
     const totalTime = serviceBusyTime + serviceIdleTime;
     const serviceUtilization = totalTime ? (serviceBusyTime / totalTime) : 0;
@@ -125,10 +99,8 @@ export class Server {
   /*
    * Vynulovanie monitorovacích údajov
    */
-  async resetStats() {
-    const arr: Promise<void>[] = [];
-    this._queuePool.forEachQueue((queue: ServiceQueue) => arr.push(queue.resetStats()));
-    await Promise.all(arr);
+  resetStats(): Promise<void> {
+    return this.pool.resetStats();
   }
 }
 

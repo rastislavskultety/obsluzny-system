@@ -4,9 +4,7 @@
 
 import express from "express";
 import Server from "../services/server";
-import { handleInvalidParameter, handleInvalidSession } from "./lib/utils";
-import ExtendedRequest from '../middleware/extended-request';
-
+import { handleInvalidSession } from "./lib/utils";
 
 export default function (server: Server) {
   const router = express.Router({ mergeParams: true });
@@ -14,10 +12,13 @@ export default function (server: Server) {
   router.get('/', async (req, res, next) => {
     try {
       const countLimit = 1000;
+
       if (handleInvalidSession(req, res)) return;
 
       // Parameter count môže byť v url query alebo v tele http požiadavku
-      const count = Number.parseInt(req.query.count?.toString(), 10) || req.body.count || 1;
+
+      const count = typeof req.query.count !== "undefined" && Number.parseInt(req.query.count.toString(), 10) ||
+        req.body.count || 1;
 
       // Validácia parametra count
       if (!Number.isInteger(count)) {
@@ -27,24 +28,16 @@ export default function (server: Server) {
         return res.status(400).send({ error: "Parameter count must be less than " + countLimit })
       }
 
-      const conf = (req as ExtendedRequest).serviceConfiguration; // Aktuálna konfigurácia služieb
-
-
       try {
-
-        const pool = server.queuePool();
-
-        // Získaj frontu pre uloženie požiadavky
-        const queue = await pool.allocateQueue(conf.numberOfQueues);
-
         // Vloženie požidavku do fronty, vráti sa odozva zo služby
-        const quotes = await queue.enqueue({ count }, conf.queueCapacity);
-
-        // Údržba...
-        await pool.destroyStaleQueues(conf.numberOfQueues);
+        const resp = await server.pool.enqueue({ count });
 
         // Odoslanie odozvy
-        res.send({ quotes, serviceCenter: queue.id + 1 });
+        res.send({
+          quotes: resp.response,
+          serviceCenter: resp.serviceCenter
+        });
+
       } catch (err) {
 
         // Ošetrenie chyby prekročenia kapacity fronty

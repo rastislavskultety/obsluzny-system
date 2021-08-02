@@ -1,0 +1,39 @@
+version: "3.3"
+
+services:
+
+  proxy:
+    image: traefik:2.4
+    ports:
+      - "80:80"
+      - "8080:8080" # Web UI pre Traefik
+    volumes:
+      - ${PWD}/traefik/prod:/etc/traefik/providers:delegated # Traefik dynamic config
+    environment:
+      - TRAEFIK_PROVIDERS_FILE_DIRECTORY=/etc/traefik/providers
+      - TRAEFIK_GLOBAL_SENDANONYMOUSUSAGE=false
+      - TRAEFIK_API=true
+      - TRAEFIK_API_INSECURE=true
+      - TRAEFIK_LOG_LEVEL=WARN
+
+  server:
+    image: node:16
+    # build: .
+    working_dir: /data
+    volumes:
+      - ${PWD}/server:/data
+    environment:
+      - CONFIG_FILE=config.docker.jsonc
+      - DEBUG=worker,pool
+    command: bash -c "npm install && npm run dev"
+
+  simulator:
+    build: "simulator"
+    environment:
+      - CONFIG_FILE=config.docker.jsonc
+
+  web:
+    build: client
+
+  redis:
+    image: redis

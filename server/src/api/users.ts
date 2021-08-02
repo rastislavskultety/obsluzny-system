@@ -23,7 +23,7 @@ export default function (server: Server) {
     }
 
     // Vytvorenie novej relácie pre užívateľa
-    const sid = await server.sessionStore().createSession({ username });
+    const sid = await server.sessionStore.createSession({ username });
 
     // Pokiaľ sa nejedná o simuláciu, tak vráť identifikátor cez header cookie
     if (!req.body.simulate) {
@@ -45,7 +45,7 @@ export default function (server: Server) {
       const session = (req as ExtendedRequest).session;
 
       if (session) {
-        await server.sessionStore().destroySession(session.sid);
+        await server.sessionStore.destroySession(session.sid);
       }
       res.send({
         message: 'success'

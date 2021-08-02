@@ -1,18 +1,32 @@
 import { SessionStore } from '../../../src/services/lib/session-store'
 import { v4 as uuidv4 } from 'uuid';
 import { expect } from 'chai';
+import { RedisStore } from '../../../src/services/lib/redis-store';
 
 interface Data {
   username: string;
 }
 
 describe('session-store.ts', () => {
+
+
+  let redisStore: RedisStore;
+
+  before(async () => {
+    redisStore = new RedisStore();
+    await redisStore.call('flushall');
+  });
+
+  after(() => {
+    redisStore.call('quit');
+  })
+
   it('Vytvorenie session store', () => {
-    expect(new SessionStore<Data>()).to.be.an('object');
+    expect(new SessionStore<Data>(redisStore)).to.be.an('object');
   });
 
   it('Overenie neexistujúceho sid', async () => {
-    const s = new SessionStore<Data>();
+    const s = new SessionStore<Data>(redisStore);
     const randomSid = uuidv4();
 
     expect(await s.sessionExists(randomSid)).to.eq(false);
@@ -31,9 +45,9 @@ describe('session-store.ts', () => {
 
   it('Overenie existujúceho sid', async () => {
     const username = 'Ján Novák';
-    const s = new SessionStore<Data>();
+    const s = new SessionStore<Data>(redisStore);
 
-    let sid = await s.createSession({ username });
+    const sid = await s.createSession({ username });
     expect(await s.sessionExists(sid)).to.eq(true);
     expect(await s.getSessionData(sid)).to.deep.equal({ username });
 
@@ -43,16 +57,16 @@ describe('session-store.ts', () => {
 
   it('Zmazanie relácie', async () => {
     const username = 'Ján Novák';
-    const s = new SessionStore<Data>();
+    const s = new SessionStore<Data>(redisStore);
 
-    let sid = await s.createSession({ username });
+    const sid = await s.createSession({ username });
     expect(await s.sessionExists(sid)).to.eq(true);
     await s.destroySession(sid);
     expect(await s.sessionExists(sid)).to.eq(false);
   });
 
   it('Zmazanie neexistujúcej relácie nevráti chybu', async () => {
-    const s = new SessionStore<Data>();
+    const s = new SessionStore<Data>(redisStore);
     const randomSid = uuidv4();
 
     await s.destroySession(randomSid);
@@ -61,7 +75,7 @@ describe('session-store.ts', () => {
   it('Počet aktívnych relácií', async () => {
     const sids = [];
     const N = 5;
-    const s = new SessionStore<Data>();
+    const s = new SessionStore<Data>(redisStore);
 
     expect(await s.count()).to.eql(0);
 

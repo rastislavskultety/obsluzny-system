@@ -1,5 +1,5 @@
-import { Queue, IServiceCenter } from '../../../src/services/lib/queue';
 import { expect } from 'chai';
+import { Queue, IServiceCenter } from '../../../src/services/lib/queues';
 
 interface TestRequest {
   id: string;
@@ -11,12 +11,12 @@ interface TestResponse {
 
 class CenterStub implements IServiceCenter<TestRequest, TestResponse> {
   private paused = false;
-  private pending: TestResponse;
-  private resume: (response: TestResponse) => void;
+  private pending: TestResponse | null = null;
+  private resume: null | ((response: TestResponse) => void) = null;
   public numberOfRequests = 0;
 
   async serve(request: TestRequest): Promise<TestResponse> {
-    let response = { value: request.id };
+    const response = { value: request.id };
     if (this.paused) {
       if (this.pending) throw new Error('Service center cannot process new request before old one is finished');
       this.pending = response;
@@ -32,9 +32,13 @@ class CenterStub implements IServiceCenter<TestRequest, TestResponse> {
     this.paused = false;
     if (this.pending) {
       this.numberOfRequests += 1;
-      let pending = this.pending;
+      const pending = this.pending;
       this.pending = null;
-      this.resume(pending);
+      if (this.resume) {
+        this.resume(pending);
+      } else {
+        throw Error('CenterStub: cannot resume')
+      }
     }
   }
 
@@ -42,7 +46,6 @@ class CenterStub implements IServiceCenter<TestRequest, TestResponse> {
     this.paused = true;
   }
 }
-
 
 function almostEqual(actual: number, expected: number, tolerance: number): boolean {
   return Math.abs((actual - expected) / expected) <= tolerance;
@@ -62,7 +65,6 @@ describe('queue.ts', () => { // the tests container
 
     expect(center.numberOfRequests).to.equal(0);
 
-
     // daľší požiadavok musí byť zamietnutý
     let error = null;
     try {
@@ -81,7 +83,7 @@ describe('queue.ts', () => { // the tests container
 
   it('Správne vypočíta štatistické údaje', async () => {
 
-    const TIME_TOLERANCE = 0.1;
+    const TIME_TOLERANCE = 0.15;
 
     await sleep(100); // počkaj aby sa dokončili iné procesy aby bolo presnejšie meranie času
 
@@ -121,7 +123,7 @@ describe('queue.ts', () => { // the tests container
 
     await sleep(5); // počkaj kým dobehne aktualizácia štatistík
 
-    let stats = await queue.getStats();
+    const stats = await queue.getStats();
     expect(stats.completedRequests).to.eq(capacity);
     expect(stats.rejectedRequests).to.eq(1);
     expect(stats.queuedRequests).to.eq(0);
