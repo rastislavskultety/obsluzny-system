@@ -1,8 +1,8 @@
 import debug from 'debug';
 import { workerData } from "worker_threads";
 import { RPCClient, RPCServer } from "../lib/rpc";
-import { createClientSocketTransport, createServerSocketTransport } from "../lib/transport/socket-transport";
-import { createWorkerThread, signalReady, validateWorker } from '../lib/worker-helpers';
+import { createClientSocketTransport, createServerSocketTransport } from "../lib/transport";
+import { createWorkerThread, signalReady, validateWorker } from './lib/helpers';
 import { Pool, RemoteQueue } from '../lib/queues';
 import { RedisStore } from '../lib/redis-store';
 import { ServiceConfigurationStore } from '../lib/service-configuration';
@@ -12,7 +12,7 @@ import { workers } from '.';
 const THREAD_NAME = 'Pool worker thread';
 const debugWorker = debug('worker');
 
-debugWorker('%s started with data = %o', THREAD_NAME, workerData);
+debugWorker('%s started', THREAD_NAME);
 
 validateWorker(THREAD_NAME, {
   'configuration': 'object',
@@ -25,7 +25,6 @@ const config = workerData.configuration;
 
 const serverTransport = createServerSocketTransport(workerData.poolName);
 const serverRpc = new RPCServer(serverTransport);
-
 
 const redisStore = new RedisStore(config.redis);
 const configStore = new ServiceConfigurationStore(redisStore);

@@ -11,7 +11,7 @@ Tento repozitár implementuje zadanie vzorového projektu obslužného systému 
     - [API server](#api-server)
     - [Simulačný server](#simulačný-server)
     - [Webová aplikácia](#webová-aplikácia)
-  - [Obmedzenia](#obmedzenia)
+  - [Architektúra API servera](#architektúra-api-servera)
   - [Štruktúra projektu](#štruktúra-projektu)
   - [Konfigurácia](#konfigurácia)
 
@@ -49,12 +49,13 @@ open http://localhost
 
 ## Popis riešenia
 
-Obslužný systém pozostáva zo štyroch častí, pričom každá beží v oddelenom docker kontaineri.
+Obslužný systém pozostáva zo piatich častí, pričom každá beží v oddelenom docker kontaineri.
 
 - Proxy server
 - Api server
 - Server pre simuláciu užívateľských požiadavie
 - Webová aplikácia
+- Redis databáza
 
 ![Docker kontainery](doc/images/docker.png)
 
@@ -93,10 +94,16 @@ poskytované pomocou proxy servera [Nginx](https://www.nginx.com/) bežiacom v d
 
 ![Web aplikácia](doc/images/web-application.png)
 
-## Obmedzenia
 
-API server je spravený kvôli jednoduchosti ako jednoprocesová aplikácia a nie je pripravený na to aby bežaal distribuovane. Napriek tomu je zdrojový kód servera napísaný tak, že všetky relevantné funkcie sú spravené
-asynchrónne, čo umožní jednoduchú implementáciu servera bežiaceho vo viacerých inštanciách.
+## Architektúra API servera
+
+API server je navrhnutý tak, aby sa dal používať vo viacerých inštanciách. Toto riešenie využíva Node.js cluster
+pre vytvorenie viacerých http serverov. Zároveň spúšťa worker thready pre: správu front (pool), simuláciu servisných
+centier (service) a pre každú frontu požiadaviek (queue0, queue1, ...).
+
+Pre uloženie sessions a uloženie dynamickej konfigurácie servera sa používa [Redis data store](https://redis.io/).
+
+Komunikácia medzi jednotlivými workermi je zabezpečená pomocou unix socketov.
 
 ## Štruktúra projektu
 
@@ -114,6 +121,8 @@ Projekt má túto štruktúru adresárov:
     + data - databáza (JSON súbor)
     + middleware - middleware funkcie pre spracovanie http požiadaviek
     + services - aplikačná logika
+      + lib - knižnica pre aplikačnú logiku
+      + workers - worker thready
   + tests - unit testy
   + ...
 + simulator - Simulačný server
@@ -139,6 +148,7 @@ samovysvetľujúce komentáre:
     "serviceTimeDeviation": 0.5 // parameter r, v sekundách, musí byť >= 0 a zároveň < meanServiceTime
   },
   "server": {
+    "clusterSize": 3, // počet inštancií http servera v clusteri
     "security": {
       "cookieSecret": "qe12}$NOq12Jkl" // pre vytváranie signed cookies
     }

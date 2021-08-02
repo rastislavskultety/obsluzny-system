@@ -28,7 +28,7 @@ export default function () {
       if (chunk) {
         body += chunk.toString('utf8');
       }
-      debugLog('%d %s %s => %o', res.statusCode, req.method, req.originalUrl, body);
+      debugLog('[%d] %d %s %s => %o', process.pid, res.statusCode, req.method, req.originalUrl, body);
       originalEnd.apply(res, arguments as any);
     };
   }
@@ -37,7 +37,7 @@ export default function () {
    * Handler pre logovanie
    */
   const log: express.RequestHandler = (req, res, next) => {
-    debugLog('%s %s qs:%o body:%o', req.method, req.path, req.query, req.body);
+    debugLog('[%d] %s %s qs:%o body:%o', process.pid, req.method, req.path, req.query, req.body);
     logResponseBody(req, res); // zaves sa na metódy res.write a res.end aby sa dalo logovať výstup http servera
 
     next(); // pokračuj ďalším handlerom

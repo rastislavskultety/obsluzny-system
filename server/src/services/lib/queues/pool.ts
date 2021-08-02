@@ -87,13 +87,13 @@ export class Pool<Request, Response> extends QueueManager<IQueue<Request, Respon
 function resetStats(dest: QueueStats) {
   let key: keyof QueueStats;
   for (key in dest) {
-    dest[key] = 0;
+    if (dest.hasOwnProperty(key)) dest[key] = 0;
   }
 }
 
 function addStats(dest: QueueStats, src: QueueStats) {
   let key: keyof QueueStats;
   for (key in src) {
-    dest[key] += src[key];
+    if (dest.hasOwnProperty(key)) dest[key] += src[key];
   }
 }

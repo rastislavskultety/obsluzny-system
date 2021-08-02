@@ -8,7 +8,7 @@
       "cwd": "${workspaceFolder}/server",
       "command": "node dist/index.js",
       "env": {
-        "DEBUG": "worker"
+        "DEBUG": "worker,cluster"
       },
       "name": "Server: start",
       "request": "launch",

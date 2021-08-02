@@ -42,7 +42,7 @@ export class QueueManager<Q extends IManagedQueue> {
       const queueLength = await queue.length();
 
       // Ak sme na prvej fronte, tak jej dĺžka je zároveň najmenšou dĺžkou z prehľadaných front
-      if (i == 0) {
+      if (i === 0) {
         minLength = queueLength;
       }
 

@@ -1,15 +1,15 @@
 import debug from 'debug';
 import { Queue } from '../lib/queues';
-import { workerData, isMainThread, parentPort } from "worker_threads";
+import { workerData } from "worker_threads";
 import { RPCClient, RPCServer } from "../lib/rpc";
-import { createClientSocketTransport, createServerSocketTransport } from "../lib/transport/socket-transport";
+import { createClientSocketTransport, createServerSocketTransport } from "../lib/transport";
 import { RemoteServiceCenter } from '../lib/remote-service-center';
-import { signalReady, validateWorker } from '../lib/worker-helpers';
+import { signalReady, validateWorker } from './lib/helpers';
 
 const THREAD_NAME = 'Queue worker thread';
 const debugWorker = debug('worker');
 
-debugWorker('%s started with data = %o', THREAD_NAME, workerData);
+debugWorker('%s started with id=%d', THREAD_NAME, workerData.id);
 
 validateWorker(THREAD_NAME, {
   'id': 'number',

@@ -29,11 +29,8 @@ export default function (server: Server) {
       }
 
       try {
-
-        const pool = server.queuePool;
-
         // Vloženie požidavku do fronty, vráti sa odozva zo služby
-        const resp = await pool.enqueue({ count });
+        const resp = await server.pool.enqueue({ count });
 
         // Odoslanie odozvy
         res.send({
